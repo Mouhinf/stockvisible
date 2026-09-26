@@ -44,7 +44,7 @@ def _weekday(df: pd.DataFrame) -> np.ndarray:
     return pd.to_datetime(df["dt"], format="%Y-%m-%d").dt.dayofweek.to_numpy()
 
 
-def _check_no_future(history: pd.DataFrame, targets: pd.DataFrame) -> None:
+def check_no_future(history: pd.DataFrame, targets: pd.DataFrame) -> None:
     keys = list(SERIES_KEY)
     last = history.assign(_d=pd.to_datetime(history["dt"])).groupby(keys)["_d"].max()
     first = targets.assign(_d=pd.to_datetime(targets["dt"])).groupby(keys)["_d"].min()
@@ -57,7 +57,7 @@ def _check_no_future(history: pd.DataFrame, targets: pd.DataFrame) -> None:
 def _slot_median(
     history: pd.DataFrame, targets: pd.DataFrame, available_only: bool, min_obs: int, name: str
 ) -> HourlyForecast:
-    _check_no_future(history, targets)
+    check_no_future(history, targets)
     keys = list(SERIES_KEY)
 
     sales = hourly_matrix(history, "hours_sale")

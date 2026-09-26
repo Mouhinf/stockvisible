@@ -183,6 +183,7 @@ def real() -> dict[str, pd.DataFrame]:
 
 
 @needs_raw
+@pytest.mark.touches_test_period
 def test_manifest_traces_real_pinned_source(manifest):
     assert manifest["data_nature"].startswith("REAL")
     assert manifest["revision"] == DATASET_REVISION
@@ -201,6 +202,7 @@ def test_official_split_verified_as_temporal_same_series(manifest):
 
 
 @needs_raw
+@pytest.mark.touches_test_period
 def test_subset_shape_and_split_nature(real):
     n = SubsetSpec().n_series
     tr, ev = real["train"], real["eval"]
@@ -211,6 +213,7 @@ def test_subset_shape_and_split_nature(real):
 
 
 @needs_raw
+@pytest.mark.touches_test_period
 def test_validator_has_no_false_positive_on_real_data(real):
     for split, df in real.items():
         report = validate(df)
@@ -218,6 +221,7 @@ def test_validator_has_no_false_positive_on_real_data(real):
 
 
 @needs_raw
+@pytest.mark.touches_test_period
 def test_real_data_shows_zero_sale_is_not_stockout(real):
     tr = real["train"]
     no_stockout = tr["hours_stock_status"].map(lambda s: int(np.sum(s)) == 0)
@@ -227,6 +231,7 @@ def test_real_data_shows_zero_sale_is_not_stockout(real):
 
 @needs_raw
 @needs_cache
+@pytest.mark.touches_test_period
 def test_subset_is_reproducible_and_unaltered_from_source(real):
     keys = pq.read_table(data.CACHE_DIR / "train.parquet", columns=list(SERIES_KEY)).to_pandas()
     expected = select_series(keys, SubsetSpec().n_series, SubsetSpec().seed)

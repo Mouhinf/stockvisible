@@ -56,6 +56,23 @@ Implications pour splits.py et la suite :
   - biais = moyenne(préd − réel) ;
   - B1 : `min_obs=3`, fixé a priori, jamais ajusté.
 
+### M3 — travail dev-only et test masqué
+- Développement : `splits.load_dev()` renvoie `DevSplits(train, validation)`, sans attribut test.
+  Ne pas utiliser `chronological_split(load_raw("train"))` pendant le dev : il construit le
+  test scellé en mémoire.
+- Les tests qui lisent la période test sont marqués `touches_test_period`. Run dev-only :
+  `pytest -m "not touches_test_period"`.
+- Test masqué (`evaluation.build_masked_task`), spec figée `MaskSpec(250, 3, (6, 22), 42)` :
+  - positions = heures DISPONIBLES de la fenêtre 6–22, à ≤ 3 h d'une rupture organique de la
+    même journée ;
+  - tirage stratifié par distance × côté (avant / après / entre ruptures) ;
+  - jamais de journée sans rupture ;
+  - positions choisies à partir du seul `hours_stock_status`.
+- Les valeurs masquées vivent dans le `TruthVault` (copie en lecture seule, jamais transmise aux
+  prédicteurs). `sale_amount` est mis à NaN sur les lignes masquées, sinon masqué = total −
+  heures visibles.
+- `check_no_leakage` (canaris) doit passer sur tout nouveau prédicteur avant de le comparer.
+
 Recalcul : `stockvisible.data.inspect_official_split()` (lit uniquement les colonnes
 clés et dt). Le résultat est aussi écrit dans `data/raw/manifest.json` par
 `python -m stockvisible.data`.

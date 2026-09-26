@@ -106,6 +106,7 @@ RAW_PRESENT = (data.RAW_DIR / "train.parquet").exists()
 
 
 @pytest.mark.skipif(not RAW_PRESENT, reason="lancer `python -m stockvisible.data`")
+@pytest.mark.touches_test_period
 def test_real_subset_split_boundaries():
     assert asdict(SubsetSpec()) == {"n_series": 500, "seed": 42}
     s = chronological_split(load_raw("train"))
