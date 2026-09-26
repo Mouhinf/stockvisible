@@ -12,7 +12,7 @@ perdue pendant une rupture réelle : les valeurs masquées sont des ventes obser
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 import pandas as pd
@@ -309,6 +309,79 @@ def check_no_leakage(
         raise LeakageError(" ; ".join(reasons))
 
 
+# ---------------------------------------------------------------- origine glissante + sélection (M7)
+
+PRIMARY_SCOPE = "heures disponibles, cellules communes"
+SELECTION_RULE = (
+    "ML retenu seulement si MAE(ML) < MAE(B1), prévisions glissantes à J+1, heures disponibles, "
+    "mêmes cellules ; sinon B1 reste le moteur. Fixée avant tout résultat (M7)."
+)
+
+
+def rolling_origin(forecaster: Callable, name: str) -> Callable:
+    """Glissant à J+1 : chaque jour D de targets est prévu avec history + les jours de targets < D.
+    Le prévisionniste lui-même n'est jamais modifié ; seul l'historique observé s'allonge."""
+
+    def forecast(history: pd.DataFrame, targets: pd.DataFrame) -> HourlyForecast:
+        t = targets.reset_index(drop=True)
+        shape = (len(t), HOURS)
+        pred = np.full(shape, np.nan)
+        n_obs = np.zeros(shape, dtype=int)
+        abstained = np.ones(shape, dtype=bool)
+        for day in sorted(t["dt"].unique()):
+            idx = np.flatnonzero((t["dt"] == day).to_numpy())
+            past = t[t["dt"] < day]
+            f = forecaster(pd.concat([history, past], ignore_index=True), t.iloc[idx])
+            pred[idx], n_obs[idx], abstained[idx] = f.pred, f.n_obs, f.abstained
+        keys = t.loc[:, [*SERIES_KEY, "dt"]]
+        return HourlyForecast(name=name, keys=keys, pred=pred, n_obs=n_obs, abstained=abstained)
+
+    return forecast
+
+
+def select_engine(
+    table: pd.DataFrame, ml: str = "ML (glissant)", baseline: str = "B1 (glissant)"
+) -> dict:
+    """Applique SELECTION_RULE à une table compare_baselines. Toute ambiguïté → B1."""
+    primary = table[table["périmètre"] == PRIMARY_SCOPE].set_index("modèle")
+    missing = [m for m in (ml, baseline) if m not in primary.index]
+    if missing:
+        raise ValueError(f"modèles absents du périmètre principal : {missing}")
+    n_ml, n_base = int(primary.at[ml, "n"]), int(primary.at[baseline, "n"])
+    if n_ml != n_base or n_ml == 0:
+        raise ValueError(f"comparaison invalide : {n_ml} vs {n_base} cellules")
+    mae_ml, mae_base = float(primary.at[ml, "mae"]), float(primary.at[baseline, "mae"])
+    ml_wins = bool(np.isfinite(mae_ml) and np.isfinite(mae_base) and mae_ml < mae_base)
+    return {
+        "moteur": "ML" if ml_wins else "B1",
+        "mae_ml": mae_ml,
+        "mae_b1": mae_base,
+        "n": n_ml,
+        "règle": SELECTION_RULE,
+    }
+
+
+def rolling_forecasters(model) -> dict[str, Callable]:
+    from stockvisible.model import ml_forecaster
+
+    ml = ml_forecaster(model)
+    return {
+        "B0 (glissant)": rolling_origin(b0_forecast, "B0 (glissant)"),
+        "B1 (glissant)": rolling_origin(b1_forecast, "B1 (glissant)"),
+        "ML (glissant)": lambda h, t: replace(ml(h, t), name="ML (glissant)"),
+    }
+
+
+def rolling_validation_table(dev, model) -> pd.DataFrame:
+    forecasts = [fn(dev.train, dev.validation) for fn in rolling_forecasters(model).values()]
+    return compare_baselines(dev.validation, forecasts, label="validation")
+
+
+def masked_rolling_table(dev, model) -> pd.DataFrame:
+    predictors = {name: forecast_predictor(fn) for name, fn in rolling_forecasters(model).items()}
+    return run_masked_eval(dev.train, dev.validation, predictors)
+
+
 # ---------------------------------------------------------------- CLI (dev uniquement)
 
 
@@ -329,11 +402,25 @@ def masked_validation_table() -> pd.DataFrame:
 
 
 def main() -> None:
+    from stockvisible.model import fit_model
+    from stockvisible.splits import load_dev
+
     fmt = {"float_format": lambda v: f"{v:.4f}", "index": False}
     with pd.option_context("display.width", 160, "display.max_columns", 20):
+        print("== M2 : origine fixe (fin du train) ==")
         print(validation_table().to_string(**fmt))
-        print()
+        print("\n== M3 : test masqué, origine fixe ==")
         print(masked_validation_table().to_string(**fmt))
+        dev = load_dev()
+        model = fit_model(dev.train)
+        print(f"\n== M7 : glissant J+1 — ML entraîné sur {model.train_start} → {model.train_end}, "
+              f"{model.n_train_rows} lignes horaires disponibles ==")
+        table = rolling_validation_table(dev, model)
+        print(table.to_string(**fmt))
+        print("\n== M7 : test masqué, glissant ==")
+        print(masked_rolling_table(dev, model).to_string(**fmt))
+        print("\n== M7 : sélection ==")
+        print(select_engine(table))
 
 
 if __name__ == "__main__":

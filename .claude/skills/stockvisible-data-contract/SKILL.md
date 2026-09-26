@@ -73,6 +73,39 @@ Implications pour splits.py et la suite :
   heures visibles.
 - `check_no_leakage` (canaris) doit passer sur tout nouveau prédicteur avant de le comparer.
 
+### M7 — ML horaire (décisions utilisateur, 2026-09-26, fixées avant tout entraînement)
+- Granularité horaire, avec la variable `hour`. Une ligne = (série, jour D, heure).
+- Variables (`features.FEATURES`), toutes strictement passées sauf le calendrier de D :
+  - `hour`, `day_of_week`, `holiday_flag` du jour D (calendrier, connu d'avance) ;
+  - `discount_d1` : remise de D-1, JAMAIS celle de D (hypothèse « promo planifiée » refusée,
+    invérifiable) ;
+  - `lag_d1`, `lag_d7`, `rolling_median_7` (médiane des 7 jours précédents, même heure, au moins
+    3 observations) ; une vente à une heure en rupture est censurée → NaN ;
+  - hiérarchie catégorielle : management_group, catégories 1 à 3, `product_id`, `city_id`.
+- Cardinalité maximale de HistGradientBoosting : 255 (vérifié sur sklearn 1.9.1).
+  - Sous-ensemble dev : product_id 227 (accepté), store_id 347 et séries 500 (refusés).
+  - Dataset complet : 865 produits → product_id ne passerait plus.
+- Modèle : `HistGradientBoostingRegressor(loss='quantile', quantile=0.5, early_stopping=False,
+  random_state=42)`, tout le reste par défaut. Entraîné sur les heures DISPONIBLES du TRAIN seul.
+  `TemporalLeakError` si le modèle a vu des dates >= la première date cible.
+- Évaluation glissante à J+1 (`evaluation.rolling_origin`) : B0/B1 recalculés avec l'historique
+  jusqu'à D-1, et le ML aussi, sans jamais être réentraîné.
+- Règle de sélection (`evaluation.SELECTION_RULE`) : ML retenu seulement si MAE(ML) < MAE(B1),
+  en glissant, heures disponibles, mêmes cellules ; sinon B1 reste le moteur.
+- Anti-fuite : `features.check_features_past_only` (perturbation des issues des jours >= C) doit
+  passer sur toute nouvelle variable. 4 contrôles négatifs en xfail strict.
+- RÉSULTAT M7 (validation, glissant, 138 210 heures) : ML MAE 0,0533 vs B1 0,0482 → B1 reste le
+  moteur. MAIS le ML est DÉGÉNÉRÉ : il prédit exactement 0 partout (in-sample aussi), soit
+  2 feuilles par arbre et des valeurs de feuille nulles sur les 100 arbres.
+  - Cause diagnostiquée sur le train et sur un jouet : HGB quantile/absolute_error de sklearn
+    1.9.1 ne sort pas de sa valeur initiale quand une majorité de cibles lui est exactement
+    égale (71 % de ventes horaires nulles, médiane initiale 0).
+  - Un bruit de 1e-6 sur la cible débloque les arbres.
+  - Des groupes à médiane > 0 existent pourtant (rolling_median_7 > 0 : 56 % d'heures avec
+    vente, médiane 0,10).
+  - Toute correction = changement de méthode après un résultat de validation : décision
+    humaine requise.
+
 Recalcul : `stockvisible.data.inspect_official_split()` (lit uniquement les colonnes
 clés et dt). Le résultat est aussi écrit dans `data/raw/manifest.json` par
 `python -m stockvisible.data`.
