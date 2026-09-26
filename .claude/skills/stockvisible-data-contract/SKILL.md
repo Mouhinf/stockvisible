@@ -43,6 +43,19 @@ Implications pour splits.py et la suite :
 - Toute feature ou statistique par série doit être calculée uniquement sur le passé
   de la fenêtre évaluée.
 
+### Décision M2 (utilisateur, 2026-09-26) — remplace le premier point ci-dessus
+- `splits.chronological_split` : pour chaque série, les 90 jours de train sont découpés en
+  60 jours train (2024-03-28 → 05-26), 15 jours validation (05-27 → 06-10) et 15 jours test
+  (06-11 → 06-25). Ce test est rendu scellé (`SealedFrame`) et ne s'ouvre qu'avec
+  `UNSEAL_PHRASE`, après le freeze.
+- Le fichier `eval` officiel (7 jours) n'est PAS utilisé. Il reste intouché, et son rôle
+  (second test externe ?) est à décider par l'humain.
+- Protocole d'évaluation fixé avant tout résultat (`evaluation.py`) :
+  - périmètre principal = heures déclarées disponibles dans la cible ;
+  - modèles comparés sur les mêmes cellules ;
+  - biais = moyenne(préd − réel) ;
+  - B1 : `min_obs=3`, fixé a priori, jamais ajusté.
+
 Recalcul : `stockvisible.data.inspect_official_split()` (lit uniquement les colonnes
 clés et dt). Le résultat est aussi écrit dans `data/raw/manifest.json` par
 `python -m stockvisible.data`.
