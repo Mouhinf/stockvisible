@@ -3,6 +3,7 @@ services:
     name: stockvisible
     runtime: python
     plan: free
+    region: frankfurt
     branch: master
     buildCommand: pip install -r requirements.txt
     # Render injecte $PORT ; 0.0.0.0 remplace le "localhost" de .streamlit/config.toml (usage local).

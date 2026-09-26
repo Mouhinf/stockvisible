@@ -25,7 +25,7 @@ python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 ## Déploiement Render
 
-Le fichier [`render.yaml`](render.yaml) décrit le service (Blueprint). Pour une configuration
+Service en ligne : https://stockvisible.onrender.com (région Frankfurt). Le fichier [`render.yaml`](render.yaml) décrit le service (Blueprint). Pour une configuration
 à la main dans le dashboard, reporter les mêmes valeurs :
 
 | Champ | Valeur |
