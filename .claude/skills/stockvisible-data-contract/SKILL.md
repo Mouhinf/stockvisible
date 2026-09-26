@@ -117,6 +117,25 @@ Implications pour splits.py et la suite :
   - Machine de dev à 2 cœurs chargée : lancer avec `OMP_NUM_THREADS=1` (entraînement 5×
     plus rapide).
 
+### M8 — moteur GELÉ (2026-09-26)
+- Choix sur la validation seule (`selection.run_selection`) : **ML** retenu.
+  - MAE ML 0,0456 < B1 0,0482 (B0 0,0475), sur 138 210 h glissantes.
+  - Biais : ML −0,031, B1 −0,020, B0 −0,029.
+  - Identique à M7b : recalcul déterministe.
+- `engine_freeze.json` (racine du dépôt) contient :
+  - la décision, la règle et les métriques ;
+  - les specs et la liste des variables ;
+  - le SHA-256 de train.parquet ;
+  - les SHA-256 de `model.py`, `features.py` et `baselines.py`.
+- NE PLUS MODIFIER model.py, features.py, baselines.py : `check_freeze` fait échouer
+  `tests/test_selection.py` à la moindre modification.
+- `select_engine(table, test_start=...)` exige une provenance (split=validation, dt_max <
+  test_start) ; `splits.test_start(dev)` est déduit du dev seul.
+- AVANT d'ouvrir le test (M9), décider et écrire :
+  - l'entraînement final (train seul ou train + validation, même configuration) ;
+  - le protocole du test (glissant J+1, mêmes métriques).
+  Puis ouvrir le test une seule fois (`UNSEAL_PHRASE`).
+
 Recalcul : `stockvisible.data.inspect_official_split()` (lit uniquement les colonnes
 clés et dt). Le résultat est aussi écrit dans `data/raw/manifest.json` par
 `python -m stockvisible.data`.

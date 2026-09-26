@@ -65,6 +65,16 @@ class DevSplits:
     validation: pd.DataFrame
 
 
+def reserved_period_start(dev: DevSplits, spec: SplitSpec = SPLIT_SPEC) -> str:
+    """Première date de la période test, déduite du dev et de SplitSpec seuls (aucune donnée test lue).
+    Prend la série la plus précoce : la borne la plus prudente."""
+    first = pd.to_datetime(dev.train["dt"], format="%Y-%m-%d").min()
+    start = first + pd.Timedelta(days=spec.train_days + spec.validation_days)
+    if pd.to_datetime(dev.validation["dt"], format="%Y-%m-%d").max() >= start:
+        raise ValueError("la validation déborde sur la période test")
+    return str(start.date())
+
+
 def _ordered_with_contract(df: pd.DataFrame, n_days: int) -> tuple[pd.DataFrame, np.ndarray]:
     keys = list(SERIES_KEY)
     dates = pd.to_datetime(df["dt"], format="%Y-%m-%d")

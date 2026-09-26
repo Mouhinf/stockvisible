@@ -1,0 +1,193 @@
+{
+  "moteur": "ML",
+  "règle": "ML retenu seulement si MAE(ML) < MAE(B1), prévisions glissantes à J+1, heures disponibles, mêmes cellules ; sinon B1 reste le moteur. Fixée avant tout résultat (M7).",
+  "décision": {
+    "mae_ml": 0.04561507044476779,
+    "mae_b1": 0.04819883510599812,
+    "n": 138210
+  },
+  "métriques_validation_périmètre_principal": {
+    "B0 (glissant)": {
+      "mae": 0.047474806453946895,
+      "bias": -0.029351515809275742,
+      "n": 138210,
+      "couverture": 1.0
+    },
+    "B1 (glissant)": {
+      "mae": 0.04819883510599812,
+      "bias": -0.01946903263150278,
+      "n": 138210,
+      "couverture": 0.9613388888888889
+    },
+    "ML (glissant)": {
+      "mae": 0.04561507044476779,
+      "bias": -0.03094032385918825,
+      "n": 138210,
+      "couverture": 1.0
+    }
+  },
+  "table_validation": [
+    {
+      "split": "validation",
+      "périmètre": "heures disponibles, cellules communes",
+      "modèle": "B0 (glissant)",
+      "couverture": 1.0,
+      "n": 138210,
+      "mae": 0.0474748065,
+      "bias": -0.0293515158,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    },
+    {
+      "split": "validation",
+      "périmètre": "heures disponibles, cellules communes",
+      "modèle": "B1 (glissant)",
+      "couverture": 0.9613388889,
+      "n": 138210,
+      "mae": 0.0481988351,
+      "bias": -0.0194690326,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    },
+    {
+      "split": "validation",
+      "périmètre": "heures disponibles, cellules communes",
+      "modèle": "ML (glissant)",
+      "couverture": 1.0,
+      "n": 138210,
+      "mae": 0.0456150704,
+      "bias": -0.0309403239,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    },
+    {
+      "split": "validation",
+      "périmètre": "heures disponibles, toute la couverture",
+      "modèle": "B0 (glissant)",
+      "couverture": 1.0,
+      "n": 141051,
+      "mae": 0.0470371142,
+      "bias": -0.0292774387,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    },
+    {
+      "split": "validation",
+      "périmètre": "heures disponibles, toute la couverture",
+      "modèle": "B1 (glissant)",
+      "couverture": 0.9613388889,
+      "n": 138210,
+      "mae": 0.0481988351,
+      "bias": -0.0194690326,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    },
+    {
+      "split": "validation",
+      "périmètre": "heures disponibles, toute la couverture",
+      "modèle": "ML (glissant)",
+      "couverture": 1.0,
+      "n": 141051,
+      "mae": 0.0451834049,
+      "bias": -0.0306683728,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    },
+    {
+      "split": "validation",
+      "périmètre": "toutes heures (cible censurée), cellules communes",
+      "modèle": "B0 (glissant)",
+      "couverture": 1.0,
+      "n": 173041,
+      "mae": 0.0403262695,
+      "bias": -0.0224148497,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    },
+    {
+      "split": "validation",
+      "périmètre": "toutes heures (cible censurée), cellules communes",
+      "modèle": "B1 (glissant)",
+      "couverture": 0.9613388889,
+      "n": 173041,
+      "mae": 0.0428254922,
+      "bias": -0.0124740957,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    },
+    {
+      "split": "validation",
+      "périmètre": "toutes heures (cible censurée), cellules communes",
+      "modèle": "ML (glissant)",
+      "couverture": 1.0,
+      "n": 173041,
+      "mae": 0.0391529673,
+      "bias": -0.0233199889,
+      "dt_min": "2024-05-27",
+      "dt_max": "2024-06-10"
+    }
+  ],
+  "périodes": {
+    "train": [
+      "2024-03-28",
+      "2024-05-26"
+    ],
+    "validation": [
+      "2024-05-27",
+      "2024-06-10"
+    ],
+    "début_test_réservé": "2024-06-11"
+  },
+  "regards_sur_la_validation": "2 regards déclarés sur le ML : M7 (ML dégénéré) puis M7b (correctif de départage). M8 recalcule la même configuration, sans aucun changement.",
+  "modèle": {
+    "spec": {
+      "loss": "quantile",
+      "quantile": 0.5,
+      "early_stopping": false,
+      "random_state": 42,
+      "target_jitter": 1e-06
+    },
+    "n_lignes_train": 533071,
+    "sklearn": "1.9.1",
+    "python": "3.12.3"
+  },
+  "variables": {
+    "spec": {
+      "lags_days": [
+        1,
+        7
+      ],
+      "rolling_days": 7,
+      "rolling_min_obs": 3
+    },
+    "liste": [
+      "hour",
+      "lag_d1",
+      "lag_d7",
+      "rolling_median_7",
+      "discount_d1",
+      "holiday_flag",
+      "day_of_week",
+      "management_group_id",
+      "first_category_id",
+      "second_category_id",
+      "third_category_id",
+      "product_id",
+      "city_id"
+    ]
+  },
+  "split": {
+    "train_days": 60,
+    "validation_days": 15,
+    "test_days": 15
+  },
+  "données": {
+    "train_parquet_sha256": "7b1016d84500bd574ca689e817ff83e20cbdfdbbd36d545b5d39bf9061080bec"
+  },
+  "fichiers_gelés_sha256": {
+    "stockvisible/model.py": "80c397654a3a90f1fe08f432360663aff424f6ab279896393f247ee5bac084a4",
+    "stockvisible/features.py": "b5df71c4bbae4b06091da590854bd2df31ddaf69309ffd0863f594eb8b650d8b",
+    "stockvisible/baselines.py": "56b1a12f37398f4bb42410c859799736aae306a10700f5fab6cc5b0855c14e97"
+  },
+  "entraînement_final": "à décider AVANT d'ouvrir le test (train seul, ou train + validation)"
+}

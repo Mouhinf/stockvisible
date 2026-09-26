@@ -339,10 +339,35 @@ def rolling_origin(forecaster: Callable, name: str) -> Callable:
     return forecast
 
 
+class ReservedPeriodError(ValueError):
+    """Des données de la période test (ou de provenance inconnue) atteignent la sélection."""
+
+
+PROVENANCE_COLUMNS = ("split", "dt_min", "dt_max")
+
+
 def select_engine(
-    table: pd.DataFrame, ml: str = "ML (glissant)", baseline: str = "B1 (glissant)"
+    table: pd.DataFrame,
+    *,
+    test_start: str,
+    ml: str = "ML (glissant)",
+    baseline: str = "B1 (glissant)",
 ) -> dict:
-    """Applique SELECTION_RULE à une table compare_baselines. Toute ambiguïté → B1."""
+    """Applique SELECTION_RULE à une table de VALIDATION. Toute ambiguïté → B1.
+
+    La table doit porter sa provenance (split, dt_min, dt_max) : une ligne étiquetée autrement que
+    « validation », ou dont les dates atteignent test_start, est refusée (ReservedPeriodError).
+    """
+    missing_cols = [c for c in PROVENANCE_COLUMNS if c not in table.columns]
+    if missing_cols:
+        raise ReservedPeriodError(f"provenance absente ({missing_cols}) : sélection refusée")
+    labels = set(table["split"])
+    if labels != {"validation"}:
+        raise ReservedPeriodError(f"sélection sur autre chose que la validation : {sorted(labels)}")
+    if str(table["dt_max"].max()) >= test_start:
+        raise ReservedPeriodError(
+            f"dates évaluées jusqu'au {table['dt_max'].max()} : période test (≥ {test_start}) atteinte"
+        )
     primary = table[table["périmètre"] == PRIMARY_SCOPE].set_index("modèle")
     missing = [m for m in (ml, baseline) if m not in primary.index]
     if missing:
@@ -374,7 +399,8 @@ def rolling_forecasters(model) -> dict[str, Callable]:
 
 def rolling_validation_table(dev, model) -> pd.DataFrame:
     forecasts = [fn(dev.train, dev.validation) for fn in rolling_forecasters(model).values()]
-    return compare_baselines(dev.validation, forecasts, label="validation")
+    table = compare_baselines(dev.validation, forecasts, label="validation")
+    return table.assign(dt_min=dev.validation["dt"].min(), dt_max=dev.validation["dt"].max())
 
 
 def masked_rolling_table(dev, model) -> pd.DataFrame:
@@ -420,7 +446,9 @@ def main() -> None:
         print("\n== M7 : test masqué, glissant ==")
         print(masked_rolling_table(dev, model).to_string(**fmt))
         print("\n== M7 : sélection ==")
-        print(select_engine(table))
+        from stockvisible.splits import reserved_period_start
+
+        print(select_engine(table, test_start=reserved_period_start(dev)))
 
 
 if __name__ == "__main__":

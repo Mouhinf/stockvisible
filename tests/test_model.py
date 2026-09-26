@@ -161,6 +161,9 @@ def test_rolling_baseline_never_sees_the_target_day():
 # ---------------------------------------------------------------- règle de sélection
 
 
+TEST_START = "2024-06-11"
+
+
 def _table(mae_ml, mae_b1, n_ml=100, n_b1=100):
     return pd.DataFrame(
         [
@@ -168,7 +171,7 @@ def _table(mae_ml, mae_b1, n_ml=100, n_b1=100):
             {"périmètre": PRIMARY_SCOPE, "modèle": "B1 (glissant)", "n": n_b1, "mae": mae_b1},
             {"périmètre": "autre", "modèle": "ML (glissant)", "n": 1, "mae": 0.0},
         ]
-    )
+    ).assign(split="validation", dt_min="2024-05-27", dt_max="2024-06-10")
 
 
 @pytest.mark.parametrize(
@@ -176,14 +179,14 @@ def _table(mae_ml, mae_b1, n_ml=100, n_b1=100):
     [(0.040, 0.041, "ML"), (0.041, 0.041, "B1"), (0.042, 0.041, "B1"), (np.nan, 0.041, "B1")],
 )
 def test_selection_rule(mae_ml, mae_b1, engine):
-    assert select_engine(_table(mae_ml, mae_b1))["moteur"] == engine
+    assert select_engine(_table(mae_ml, mae_b1), test_start=TEST_START)["moteur"] == engine
 
 
 def test_selection_rule_refuses_unfair_comparisons():
     with pytest.raises(ValueError, match="cellules"):
-        select_engine(_table(0.01, 0.02, n_ml=100, n_b1=90))
+        select_engine(_table(0.01, 0.02, n_ml=100, n_b1=90), test_start=TEST_START)
     with pytest.raises(ValueError, match="absents"):
-        select_engine(_table(0.01, 0.02).query("modèle != 'B1 (glissant)'"))
+        select_engine(_table(0.01, 0.02).query("modèle != 'B1 (glissant)'"), test_start=TEST_START)
 
 
 # ---------------------------------------------------------------- RÉEL, dev uniquement
@@ -216,7 +219,7 @@ def test_real_rolling_table_compares_same_cells_and_applies_rule(dev, real_model
     primary = table[table["périmètre"] == PRIMARY_SCOPE]
     assert set(primary["modèle"]) == {"B0 (glissant)", "B1 (glissant)", "ML (glissant)"}
     assert primary["n"].nunique() == 1 and primary["n"].iloc[0] > 100_000
-    decision = select_engine(table)
+    decision = select_engine(table, test_start=TEST_START)
     assert decision["moteur"] in {"ML", "B1"}
     expected = "ML" if decision["mae_ml"] < decision["mae_b1"] else "B1"
     assert decision["moteur"] == expected
