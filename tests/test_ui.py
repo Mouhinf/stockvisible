@@ -98,7 +98,7 @@ def test_app_runs_without_exception_on_real_dev_data(dev):
     assert not at.exception, [e.value for e in at.exception]
     assert not at.error
     assert "RÉELLES" in at.caption[0].value and "ni chargée ni affichée" in at.caption[0].value
-    assert len(at.dataframe) == 2 and len(at.selectbox[0].options) == 500
+    assert len(at.dataframe) == 4 and len(at.selectbox[0].options) == 500  # 2 B0/B1 + hypothèses + panier
     assert len(at.get("plotly_chart")) == 1
 
     # set_value (valeur brute) et non select_index : AppTest re-formate le libellé déjà formaté.
@@ -107,3 +107,61 @@ def test_app_runs_without_exception_on_real_dev_data(dev):
     assert at.selectbox[0].value == series_keys(dev)[250]
     shown = at.dataframe[0].value
     assert set(shown["Modèle"]) == {"B0", "B1"} and (shown["Heures évaluées"] > 0).all()
+
+
+def test_budget_slider_really_recomputes_the_basket(dev):
+    from streamlit.testing.v1 import AppTest
+
+    at = AppTest.from_file(str(APP), default_timeout=120).run()
+    assert not at.exception, [e.value for e in at.exception]
+    slider = at.slider[0]
+    upper = slider.max
+
+    def basket_state(budget):
+        at.slider[0].set_value(budget).run()
+        assert not at.exception, [e.value for e in at.exception]
+        cost = float(at.metric[0].value)
+        lots = tuple(at.dataframe[3].value["Lots achetés"])
+        return cost, lots
+
+    full_cost, full_lots = basket_state(upper)
+    half_cost, half_lots = basket_state(round(upper / 2, 1))
+    zero_cost, zero_lots = basket_state(0.0)
+    assert full_cost <= upper + 1e-9 and half_cost <= upper / 2 + 1e-9
+    assert full_lots != half_lots and sum(half_lots) < sum(full_lots)
+    assert zero_cost == 0.0 and set(zero_lots) == {0}
+
+
+def test_scenarios_fill_only_daytime_stockouts_with_b1(synthetic_dev):
+    from stockvisible.baselines import b1_forecast, hourly_matrix
+    from ui.components import daily_demand_scenarios
+
+    key = series_keys(synthetic_dev)[0]
+    train, validation = series_frames(synthetic_dev, key)
+    days, scen = daily_demand_scenarios(synthetic_dev, [key])
+    assert days == validation["dt"].tolist() and scen.shape == (15, 1)
+    sales = hourly_matrix(validation, "hours_sale")
+    status = hourly_matrix(validation, "hours_stock_status")
+    b1 = b1_forecast(train, validation).pred
+    expected = sales.copy()
+    day = np.zeros(24, dtype=bool)
+    day[6:22] = True
+    fill = (status == 1) & day & ~np.isnan(b1)
+    expected[fill] = b1[fill]
+    np.testing.assert_allclose(scen[:, 0], expected.sum(axis=1))
+    assert (scen[:, 0] >= sales.sum(axis=1) - 1e-12).all()  # jamais moins que l'observé
+
+
+def test_hypotheses_to_products_and_budget_bound():
+    from ui.components import (
+        budget_upper_bound,
+        default_hypotheses,
+        products_from_hypotheses,
+    )
+
+    table = default_hypotheses([(1, 2), (3, 4)])
+    table.loc[1, "Coût unitaire (hypothèse)"] = np.nan
+    products = products_from_hypotheses(table)
+    assert products[0].unit_cost == 1.0 and products[1].unit_cost is None
+    # produit 1 : besoin max 1.2 → 3 lots de 0.5 à 1.0 = 1.5 ; produit 2 sans coût : 0
+    assert budget_upper_bound(products, np.array([[1.2, 9.0], [0.4, 1.0]])) == pytest.approx(1.5)
