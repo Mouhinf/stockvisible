@@ -1,0 +1,269 @@
+{
+  "horodatage_utc": "2026-09-26T22:50:35+00:00",
+  "moteur": "ML gelé (M8), entraîné sur le train seul",
+  "spec": {
+    "q_low": 0.1,
+    "q_high": 0.9,
+    "calibration_days": 8,
+    "min_support": 200,
+    "nominal": 0.8
+  },
+  "jours_calibration": [
+    "2024-05-27",
+    "2024-06-03"
+  ],
+  "jours_évaluation": [
+    "2024-06-04",
+    "2024-06-10"
+  ],
+  "global": {
+    "statut": "calibré",
+    "couverture": 0.7951659664191253,
+    "nominal": 0.8,
+    "heures_non_calibrées": [],
+    "n_eval": 64501
+  },
+  "par_heure": [
+    {
+      "hour": 0,
+      "support": 2585,
+      "low": -5.805e-07,
+      "high": -4.336e-07,
+      "calibrated": true,
+      "n_eval": 2153,
+      "coverage": 0.7956339991,
+      "status": "calibré"
+    },
+    {
+      "hour": 1,
+      "support": 2618,
+      "low": -5.632e-07,
+      "high": -4.71e-07,
+      "calibrated": true,
+      "n_eval": 2190,
+      "coverage": 0.7762557078,
+      "status": "calibré"
+    },
+    {
+      "hour": 2,
+      "support": 2707,
+      "low": -5.526e-07,
+      "high": -4.695e-07,
+      "calibrated": true,
+      "n_eval": 2277,
+      "coverage": 0.7883179622,
+      "status": "calibré"
+    },
+    {
+      "hour": 3,
+      "support": 2869,
+      "low": -5.523e-07,
+      "high": -4.719e-07,
+      "calibrated": true,
+      "n_eval": 2434,
+      "coverage": 0.7888249795,
+      "status": "calibré"
+    },
+    {
+      "hour": 4,
+      "support": 3065,
+      "low": -5.519e-07,
+      "high": -4.694e-07,
+      "calibrated": true,
+      "n_eval": 2613,
+      "coverage": 0.7925755836,
+      "status": "calibré"
+    },
+    {
+      "hour": 5,
+      "support": 3428,
+      "low": -5.724e-07,
+      "high": -4.223e-07,
+      "calibrated": true,
+      "n_eval": 2948,
+      "coverage": 0.7995251018,
+      "status": "calibré"
+    },
+    {
+      "hour": 6,
+      "support": 3800,
+      "low": -0.0012862099,
+      "high": 0.0999994369,
+      "calibrated": true,
+      "n_eval": 3302,
+      "coverage": 0.8107207753,
+      "status": "calibré"
+    },
+    {
+      "hour": 7,
+      "support": 3841,
+      "low": -0.0200836167,
+      "high": 0.1155359736,
+      "calibrated": true,
+      "n_eval": 3335,
+      "coverage": 0.7886056972,
+      "status": "calibré"
+    },
+    {
+      "hour": 8,
+      "support": 3827,
+      "low": -0.0468188406,
+      "high": 0.1923854484,
+      "calibrated": true,
+      "n_eval": 3314,
+      "coverage": 0.7908871454,
+      "status": "calibré"
+    },
+    {
+      "hour": 9,
+      "support": 3792,
+      "low": -0.0504067031,
+      "high": 0.1967438158,
+      "calibrated": true,
+      "n_eval": 3259,
+      "coverage": 0.7827554465,
+      "status": "calibré"
+    },
+    {
+      "hour": 10,
+      "support": 3750,
+      "low": -0.0431813828,
+      "high": 0.1981820448,
+      "calibrated": true,
+      "n_eval": 3184,
+      "coverage": 0.7738693467,
+      "status": "calibré"
+    },
+    {
+      "hour": 11,
+      "support": 3679,
+      "low": -0.0334076153,
+      "high": 0.1866912778,
+      "calibrated": true,
+      "n_eval": 3086,
+      "coverage": 0.7948801037,
+      "status": "calibré"
+    },
+    {
+      "hour": 12,
+      "support": 3616,
+      "low": -0.02491569,
+      "high": 0.1386618163,
+      "calibrated": true,
+      "n_eval": 3015,
+      "coverage": 0.7980099502,
+      "status": "calibré"
+    },
+    {
+      "hour": 13,
+      "support": 3538,
+      "low": -0.0275609742,
+      "high": 0.1058198579,
+      "calibrated": true,
+      "n_eval": 2945,
+      "coverage": 0.8006791171,
+      "status": "calibré"
+    },
+    {
+      "hour": 14,
+      "support": 3489,
+      "low": -0.0299798153,
+      "high": 0.1835772193,
+      "calibrated": true,
+      "n_eval": 2909,
+      "coverage": 0.8068064627,
+      "status": "calibré"
+    },
+    {
+      "hour": 15,
+      "support": 3413,
+      "low": -0.0470129166,
+      "high": 0.1964031904,
+      "calibrated": true,
+      "n_eval": 2839,
+      "coverage": 0.7992250793,
+      "status": "calibré"
+    },
+    {
+      "hour": 16,
+      "support": 3263,
+      "low": -0.0407720274,
+      "high": 0.1999992001,
+      "calibrated": true,
+      "n_eval": 2712,
+      "coverage": 0.7935103245,
+      "status": "calibré"
+    },
+    {
+      "hour": 17,
+      "support": 3079,
+      "low": -0.047542236,
+      "high": 0.1934425331,
+      "calibrated": true,
+      "n_eval": 2531,
+      "coverage": 0.8210193599,
+      "status": "calibré"
+    },
+    {
+      "hour": 18,
+      "support": 2911,
+      "low": -0.0246431701,
+      "high": 0.1053365721,
+      "calibrated": true,
+      "n_eval": 2415,
+      "coverage": 0.7991718427,
+      "status": "calibré"
+    },
+    {
+      "hour": 19,
+      "support": 2791,
+      "low": -0.0100005959,
+      "high": 0.0999994831,
+      "calibrated": true,
+      "n_eval": 2338,
+      "coverage": 0.8096663815,
+      "status": "calibré"
+    },
+    {
+      "hour": 20,
+      "support": 2702,
+      "low": -0.007219476,
+      "high": 0.0999994398,
+      "calibrated": true,
+      "n_eval": 2253,
+      "coverage": 0.7825122059,
+      "status": "calibré"
+    },
+    {
+      "hour": 21,
+      "support": 2619,
+      "low": -0.0005555793,
+      "high": 0.0999993978,
+      "calibrated": true,
+      "n_eval": 2175,
+      "coverage": 0.7816091954,
+      "status": "calibré"
+    },
+    {
+      "hour": 22,
+      "support": 2584,
+      "low": -6.151e-07,
+      "high": 0.0999993661,
+      "calibrated": true,
+      "n_eval": 2131,
+      "coverage": 0.8085405913,
+      "status": "calibré"
+    },
+    {
+      "hour": 23,
+      "support": 2584,
+      "low": -6.105e-07,
+      "high": 0.0,
+      "calibrated": true,
+      "n_eval": 2143,
+      "coverage": 0.801679888,
+      "status": "calibré"
+    }
+  ],
+  "séries": 500
+}

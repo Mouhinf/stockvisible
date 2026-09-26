@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Dernier milestone | M9-final-test-sealed (M7 → M9 non encore poussés, donc pas encore déployés) |
+| Dernier milestone | M10-responsible-ai (M7 → M10 non encore poussés, donc pas encore déployés) |
 | URL publique | https://stockvisible.onrender.com |
 | Vérification HTTPS | 2026-09-26 18:4x GMT : `curl -sf` → 200 ; `/_stcore/health` → `ok` ; http → 301 vers https ; certificat valide (expire le 2026-12-20) |
 | Vérification navigateur | session complète sur l'URL publique : graphique, 4 tableaux, changement de série ; 0 erreur page / console / logs |
@@ -22,4 +22,6 @@ minutes avant une démo.
 - F3 VERIFY : B0 / B1 / ML comparés sur la validation, moteur ML gelé ; test masqué et anti-fuite
   (hors écran). L'écran affiche encore B0 / B1 seulement.
 - F4 DECIDE : panier optimal sous budget (coûts et stocks = hypothèses saisies).
+- IA responsable : abstention visible à l'écran ; intervalle 80 % du moteur, couverture
+  empirique 79,5 % sur la validation (jours jamais vus en calibration).
 - F5 ACT : pas encore commencé.

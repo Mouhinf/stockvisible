@@ -136,3 +136,48 @@ def basket_table(basket: Basket) -> pd.DataFrame:
             "Quantité (unités normalisées)": basket.quantities,
         }
     )
+
+
+# ---------------------------------------------------------------- IA responsable (M10)
+
+
+def abstention_summary(forecast: HourlyForecast) -> dict:
+    """Niveau d'abstention de B1 : aucune, partielle ou totale (aucune période comparable)."""
+    total = int(forecast.abstained.size)
+    abstained = int(forecast.abstained.sum())
+    if total == 0 or abstained == total:
+        return {
+            "niveau": "totale",
+            "message": "Abstention : aucune période comparable dans l'historique pour cette série "
+            "(moins de 3 observations disponibles au même créneau). Aucune prévision B1 affichée.",
+        }
+    if abstained:
+        days = int(forecast.abstained.all(axis=1).sum())
+        return {
+            "niveau": "partielle",
+            "message": f"Abstention partielle : {abstained} heures sur {total} sans période comparable "
+            f"({days} jour(s) entiers). Elles sont laissées vides, jamais remplies par défaut.",
+        }
+    return {"niveau": "aucune", "message": ""}
+
+
+def interval_summary(report: dict | None) -> dict:
+    from stockvisible.uncertainty import NOT_CALIBRATED
+
+    if report is None:
+        return {"niveau": "non_calibré", "message": f"{NOT_CALIBRATED} : rapport de calibration absent."}
+    g = report["global"]
+    if g["statut"] == NOT_CALIBRATED or g["couverture"] is None:
+        return {"niveau": "non_calibré", "message": f"{NOT_CALIBRATED} : support insuffisant dans toutes les heures."}
+    missing = g.get("heures_non_calibrées", [])
+    note = f" Heures non calibrées : {missing}." if missing else ""
+    return {
+        "niveau": "calibré" if not missing else "partiel",
+        "couverture": g["couverture"],
+        "nominal": g["nominal"],
+        "message": (
+            f"Couverture mesurée {g['couverture']:.1%} pour un nominal de {g['nominal']:.0%}, sur "
+            f"{g['n_eval']} heures des jours {report['jours_évaluation'][0]} → "
+            f"{report['jours_évaluation'][1]}, jamais vues en calibration.{note}"
+        ),
+    }

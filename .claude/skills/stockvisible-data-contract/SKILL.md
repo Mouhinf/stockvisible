@@ -148,6 +148,18 @@ Implications pour splits.py et la suite :
 - Le test réservé est désormais « vu » : toute nouvelle évaluation qui l'utiliserait pour décider
   serait biaisée. Le fichier `eval` officiel (7 jours) reste intact : c'est le seul jeu vierge.
 
+### M10 — IA responsable
+- Intervalle du moteur gelé (`stockvisible/uncertainty.py`), sans toucher aux fichiers gelés :
+  - prévision ML + quantiles 10 % / 90 % des résidus par heure ;
+  - calibration sur les jours 1–8 de la validation, couverture mesurée sur les jours 9–15 ;
+  - moins de 200 résidus dans une strate → « intervalle non calibré » ;
+  - jamais le test (`ReservedPeriodError`).
+- Résultat (`logs/interval_calibration.json`) : couverture 79,5 % pour un nominal de 80 %, sur
+  64 501 h ; les 24 heures sont calibrées.
+- Limite : la nuit, l'intervalle vaut [0, 0]. Il est calibré mais n'informe pas.
+- Écran : bandeau d'abstention B1 (« aucune période comparable », totale ou partielle ; heures
+  laissées vides, jamais remplies) et carte de couverture ou « intervalle non calibré ».
+
 Recalcul : `stockvisible.data.inspect_official_split()` (lit uniquement les colonnes
 clés et dt). Le résultat est aussi écrit dans `data/raw/manifest.json` par
 `python -m stockvisible.data`.

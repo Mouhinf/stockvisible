@@ -6,13 +6,16 @@ import streamlit as st
 from stockvisible.allocation import MAX_PRODUCTS, optimal_basket
 from stockvisible.baselines import B1_MIN_OBS, b0_forecast, b1_forecast
 from stockvisible.splits import DevSplits, load_dev
+from stockvisible.uncertainty import load_report
 from ui.charts import sales_availability_figure
 from ui.components import (
+    abstention_summary,
     basket_table,
     budget_upper_bound,
     comparison_table,
     daily_demand_scenarios,
     default_hypotheses,
+    interval_summary,
     products_from_hypotheses,
     series_frames,
     series_keys,
@@ -70,12 +73,33 @@ st.write(
     f"{summary['jours_avec_rupture_6_22']}"
 )
 st.plotly_chart(sales_availability_figure(train, validation, forecasts))
+abstention = abstention_summary(forecasts[1])
+if abstention["niveau"] == "totale":
+    st.error(abstention["message"])
+elif abstention["niveau"] == "partielle":
+    st.warning(abstention["message"])
 
 st.subheader("B0 vs B1 sur la validation — cette série")
 st.dataframe(comparison_table(validation, forecasts), hide_index=True, column_config=TABLE_FORMAT)
 
 st.subheader(f"B0 vs B1 sur la validation — les {len(keys)} séries")
 st.dataframe(all_series_table(), hide_index=True, column_config=TABLE_FORMAT)
+
+st.subheader("Incertitude du moteur ML gelé (intervalle 80 %)")
+uncertainty = interval_summary(load_report())
+if uncertainty["niveau"] == "non_calibré":
+    st.warning(uncertainty["message"])
+else:
+    st.metric(
+        "Couverture empirique de l'intervalle",
+        f"{uncertainty['couverture']:.1%}",
+        delta=f"{uncertainty['couverture'] - uncertainty['nominal']:+.1%} vs nominal",
+        delta_color="off",
+    )
+    st.caption(
+        uncertainty["message"] + " Intervalle = prévision ML + quantiles 10 % / 90 % des erreurs "
+        "par heure, calibrés sur les 8 premiers jours de validation. Test réservé jamais utilisé."
+    )
 
 st.caption(
     "B0 : médiane des ventes au même créneau (même jour de semaine, même heure) sur le train, "

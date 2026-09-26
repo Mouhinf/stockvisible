@@ -120,7 +120,7 @@ def test_budget_slider_really_recomputes_the_basket(dev):
     def basket_state(budget):
         at.slider[0].set_value(budget).run()
         assert not at.exception, [e.value for e in at.exception]
-        cost = float(at.metric[0].value)
+        cost = float(next(m for m in at.metric if m.label == "Coût du panier").value)
         lots = tuple(at.dataframe[3].value["Lots achetés"])
         return cost, lots
 
