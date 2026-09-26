@@ -136,6 +136,18 @@ Implications pour splits.py et la suite :
   - le protocole du test (glissant J+1, mêmes métriques).
   Puis ouvrir le test une seule fois (`UNSEAL_PHRASE`).
 
+### M9 — TEST FINAL CONSOMMÉ (2026-09-26 22:23:00 UTC) — ne plus jamais le relancer
+- Exécution unique (`stockvisible/final_test.py`) : modèle gelé M8, entraîné sur le train seul ;
+  prévision glissante J+1 sur 2024-06-11 → 2024-06-25 ; 500 séries ; 134 744 heures communes.
+- Résultat brut (`logs/final_test_result.json`, mode d'écriture exclusif) :
+  - ML : MAE 0,049152, biais −0,035528 ;
+  - B1 : MAE 0,050774, biais −0,026657 ;
+  - B0 : MAE 0,050799, biais −0,035783.
+- Validation M8 pour rappel : ML 0,0456, B1 0,0482, B0 0,0475. Toutes les erreurs sont plus
+  élevées sur le test. L'écart ML/B1 passe de −5,4 % à −3,2 %, et le ML sous-estime davantage.
+- Le test réservé est désormais « vu » : toute nouvelle évaluation qui l'utiliserait pour décider
+  serait biaisée. Le fichier `eval` officiel (7 jours) reste intact : c'est le seul jeu vierge.
+
 Recalcul : `stockvisible.data.inspect_official_split()` (lit uniquement les colonnes
 clés et dt). Le résultat est aussi écrit dans `data/raw/manifest.json` par
 `python -m stockvisible.data`.

@@ -1,0 +1,174 @@
+{
+  "horodatage_début_utc": "2026-09-26T22:21:13+00:00",
+  "horodatage_fin_utc": "2026-09-26T22:23:00+00:00",
+  "ouvertures_du_test": 1,
+  "moteur_gelé": "ML",
+  "résultat_moteur_test": {
+    "mae": 0.04915226966771911,
+    "bias": -0.03552760990267266,
+    "couverture": 1.0,
+    "n": 134744
+  },
+  "contexte_test": {
+    "B0 (glissant)": {
+      "mae": 0.0507987368639791,
+      "bias": -0.03578285489520869,
+      "couverture": 1.0,
+      "n": 134744
+    },
+    "B1 (glissant)": {
+      "mae": 0.05077402333313543,
+      "bias": -0.026656808466425222,
+      "couverture": 0.9807611111111111,
+      "n": 134744
+    }
+  },
+  "rappel_validation_M8": {
+    "B0 (glissant)": {
+      "mae": 0.047474806453946895,
+      "bias": -0.029351515809275742,
+      "n": 138210,
+      "couverture": 1.0
+    },
+    "B1 (glissant)": {
+      "mae": 0.04819883510599812,
+      "bias": -0.01946903263150278,
+      "n": 138210,
+      "couverture": 0.9613388888888889
+    },
+    "ML (glissant)": {
+      "mae": 0.04561507044476779,
+      "bias": -0.03094032385918825,
+      "n": 138210,
+      "couverture": 1.0
+    }
+  },
+  "protocole": {
+    "entraînement": "modèle gelé M8, train seul (2024-03-28 → 2024-05-26), aucun réentraînement",
+    "prévision": "glissante J+1 ; historique = train + validation + jours de test < J",
+    "périmètre_principal": "heures disponibles, cellules communes",
+    "métriques": "MAE et biais (moyenne prévision − réel), mêmes cellules pour ML, B1, B0",
+    "modèles": [
+      "ML (moteur gelé)",
+      "B1 (contexte)",
+      "B0 (contexte)"
+    ]
+  },
+  "période_test": [
+    "2024-06-11",
+    "2024-06-25"
+  ],
+  "lignes_test": 7500,
+  "séries": 500,
+  "table_test": [
+    {
+      "split": "test",
+      "périmètre": "heures disponibles, cellules communes",
+      "modèle": "B0 (glissant)",
+      "couverture": 1.0,
+      "n": 134744,
+      "mae": 0.0507987369,
+      "bias": -0.0357828549,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    },
+    {
+      "split": "test",
+      "périmètre": "heures disponibles, cellules communes",
+      "modèle": "B1 (glissant)",
+      "couverture": 0.9807611111,
+      "n": 134744,
+      "mae": 0.0507740233,
+      "bias": -0.0266568085,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    },
+    {
+      "split": "test",
+      "périmètre": "heures disponibles, cellules communes",
+      "modèle": "ML (glissant)",
+      "couverture": 1.0,
+      "n": 134744,
+      "mae": 0.0491522697,
+      "bias": -0.0355276099,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    },
+    {
+      "split": "test",
+      "périmètre": "heures disponibles, toute la couverture",
+      "modèle": "B0 (glissant)",
+      "couverture": 1.0,
+      "n": 135832,
+      "mae": 0.0506975897,
+      "bias": -0.0357990385,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    },
+    {
+      "split": "test",
+      "périmètre": "heures disponibles, toute la couverture",
+      "modèle": "B1 (glissant)",
+      "couverture": 0.9807611111,
+      "n": 134744,
+      "mae": 0.0507740233,
+      "bias": -0.0266568085,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    },
+    {
+      "split": "test",
+      "périmètre": "heures disponibles, toute la couverture",
+      "modèle": "ML (glissant)",
+      "couverture": 1.0,
+      "n": 135832,
+      "mae": 0.0490414396,
+      "bias": -0.0354585677,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    },
+    {
+      "split": "test",
+      "périmètre": "toutes heures (cible censurée), cellules communes",
+      "modèle": "B0 (glissant)",
+      "couverture": 1.0,
+      "n": 176537,
+      "mae": 0.0416776936,
+      "bias": -0.0260065879,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    },
+    {
+      "split": "test",
+      "périmètre": "toutes heures (cible censurée), cellules communes",
+      "modèle": "B1 (glissant)",
+      "couverture": 0.9807611111,
+      "n": 176537,
+      "mae": 0.0439503617,
+      "bias": -0.0166172247,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    },
+    {
+      "split": "test",
+      "périmètre": "toutes heures (cible censurée), cellules communes",
+      "modèle": "ML (glissant)",
+      "couverture": 1.0,
+      "n": 176537,
+      "mae": 0.0411209026,
+      "bias": -0.0250599915,
+      "dt_min": "2024-06-11",
+      "dt_max": "2024-06-25"
+    }
+  ],
+  "provenance": {
+    "git_head": "dbd9911c916d3ba679da4c7a0e9f8c95a3c8c9e9",
+    "fichiers_non_commités_au_lancement": [
+      "?? stockvisible/final_test.py",
+      "?? tests/test_final_test.py"
+    ],
+    "engine_freeze_sha256": "6d5a58f16c82a27998487950c9950466505b559bababf0d690326f5770fac44b",
+    "final_test_py_sha256": "dca72b5e339177f9c1139c4e21cbb41f938477956c8aa7627c34328e259e2a8a",
+    "train_parquet_sha256": "7b1016d84500bd574ca689e817ff83e20cbdfdbbd36d545b5d39bf9061080bec"
+  }
+}
