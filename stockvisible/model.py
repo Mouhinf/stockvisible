@@ -5,6 +5,11 @@ est censurée, ce n'est pas la demande). Réglages fixés a priori, aucun ajuste
 Prévision glissante à J+1 : chaque jour D est prévu avec les données observées jusqu'à D-1,
 le modèle n'étant jamais réentraîné. Le modèle n'est PAS figé ici : il sera choisi (ou non)
 sur la validation, puis figé dans un milestone ultérieur.
+
+Bruit de départage (M7b, décision utilisateur) : 71 % des cibles valent exactement 0, la valeur
+initiale du boosting. HistGradientBoosting quantile reste alors bloqué à 0 (2 feuilles nulles
+par arbre, reproduit sur un jouet). Un bruit uniforme [0, 1e-6), seed fixe, ajouté à la cible
+d'ENTRAÎNEMENT uniquement, casse ces égalités sans changer la médiane de plus de 1e-6.
 """
 
 from __future__ import annotations
@@ -31,6 +36,7 @@ class ModelSpec:
     quantile: float = 0.5
     early_stopping: bool = False  # le mode "auto" découperait le train au hasard
     random_state: int = 42
+    target_jitter: float = 1e-6  # départage des cibles égales (M7b) ; pas un paramètre de HGB
 
 
 MODEL_SPEC = ModelSpec()
@@ -82,7 +88,10 @@ def fit_model(train: pd.DataFrame, spec: ModelSpec = MODEL_SPEC) -> FittedModel:
         random_state=spec.random_state,
         categorical_features=[c in CATEGORICAL_FEATURES for c in FEATURES],
     )
-    estimator.fit(design_matrix(rows, encoders), rows["sale"].to_numpy())
+    y = rows["sale"].to_numpy(dtype=float)
+    rng = np.random.default_rng(spec.random_state)
+    y = y + rng.uniform(0.0, spec.target_jitter, size=len(y)) if spec.target_jitter > 0 else y
+    estimator.fit(design_matrix(rows, encoders), y)
     return FittedModel(
         estimator=estimator,
         encoders=encoders,

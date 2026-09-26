@@ -105,6 +105,17 @@ Implications pour splits.py et la suite :
     vente, médiane 0,10).
   - Toute correction = changement de méthode après un résultat de validation : décision
     humaine requise.
+- M7b (décision utilisateur, option 2) : `ModelSpec.target_jitter = 1e-6`, bruit uniforme à seed
+  fixe sur la cible d'ENTRAÎNEMENT uniquement.
+  - Test de non-régression : sans le bruit, HGB reste à 0 ; avec, il apprend une médiane
+    positive.
+  - UNE seule relance déclarée sur la validation (second regard, sans aucun autre
+    changement) : ML 0,0456 < B1 0,0482 → la règle retient ML. Biais ML −0,031 contre B1
+    −0,020 : le ML sous-estime davantage.
+  - Test masqué : ML 0,0953 contre B1 0,0962 (quasi égalité).
+  - Non figé, test non ouvert.
+  - Machine de dev à 2 cœurs chargée : lancer avec `OMP_NUM_THREADS=1` (entraînement 5×
+    plus rapide).
 
 Recalcul : `stockvisible.data.inspect_official_split()` (lit uniquement les colonnes
 clés et dt). Le résultat est aussi écrit dans `data/raw/manifest.json` par

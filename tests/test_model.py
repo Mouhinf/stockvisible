@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,7 @@ from stockvisible.evaluation import (
 from stockvisible.features import FEATURES, perturb_outcomes
 from stockvisible.model import (
     MODEL_SPEC,
+    ModelSpec,
     TemporalLeakError,
     design_matrix,
     fit_encoders,
@@ -49,7 +50,8 @@ def synth():
 
 def test_model_spec_frozen_and_everything_else_default(synth):
     assert asdict(MODEL_SPEC) == {
-        "loss": "quantile", "quantile": 0.5, "early_stopping": False, "random_state": 42
+        "loss": "quantile", "quantile": 0.5, "early_stopping": False, "random_state": 42,
+        "target_jitter": 1e-6,
     }
     _, model = synth
     params = model.estimator.get_params()
@@ -218,3 +220,34 @@ def test_real_rolling_table_compares_same_cells_and_applies_rule(dev, real_model
     assert decision["moteur"] in {"ML", "B1"}
     expected = "ML" if decision["mae_ml"] < decision["mae_b1"] else "B1"
     assert decision["moteur"] == expected
+
+
+# ---------------------------------------------------------------- départage des égalités (M7b)
+
+
+def _mostly_zero_dev():
+    """SYNTHÉTIQUE : la série 0 vend 1,0 chaque jour de 8 h à 12 h (médiane vraie = 1) ;
+    tout le reste vaut 0 → ~97 % de cibles nulles, comme la réalité horaire (71 %)."""
+    frame = make_valid_frame(n_series=4, n_days=75, seed=8)
+    frame["hours_stock_status"] = [[0] * 24 for _ in range(len(frame))]
+    frame["stock_hour6_22_cnt"] = 0
+    sales = [[1.0 if (s == 10 and 8 <= h <= 12) else 0.0 for h in range(24)] for s in frame["store_id"]]
+    frame["hours_sale"] = sales
+    frame["sale_amount"] = [sum(x) for x in sales]
+    return dev_split(frame)
+
+
+def test_model_learns_a_positive_median_despite_massive_ties():
+    dev = _mostly_zero_dev()
+    f = ml_forecast(fit_model(dev.train), dev.train, dev.validation)
+    busy = (f.keys["store_id"] == 10).to_numpy()
+    assert (f.pred[busy][:, 8:13] > 0.9).all()
+    assert (f.pred[busy][:, :8] < 0.1).all() and (f.pred[~busy] < 0.1).all()
+
+
+def test_without_tie_breaking_hgb_quantile_stays_at_zero():
+    """Contrôle négatif du correctif : sans bruit, sklearn reste bloqué à la valeur initiale 0.
+    Si ce test casse après une mise à jour de sklearn, réexaminer la nécessité du bruit."""
+    dev = _mostly_zero_dev()
+    frozen = fit_model(dev.train, replace(ModelSpec(), target_jitter=0.0))
+    assert (ml_forecast(frozen, dev.train, dev.validation).pred == 0).all()
