@@ -16,8 +16,8 @@ la vraie demande perdue pendant une rupture réelle. Coffre de vérité isolé,
 seed fixée, anti-fuite testé explicitement.
 
 ## Stack figée
-Python 3.12, Streamlit, pandas, NumPy, scikit-learn, Plotly, pytest, ruff,
-pip-audit. Aucun ajout sans écrire d'abord une ARCHITECTURE CHANGE REQUEST
+Python 3.12, Streamlit, pandas, NumPy, scikit-learn, Plotly, pyarrow (ACR
+approuvée en M6), pytest, ruff, pip-audit. Aucun ajout sans écrire d'abord une ARCHITECTURE CHANGE REQUEST
 (raison/bénéfice/coût/risque/alternative) et attendre validation humaine.
 
 ## Interdits

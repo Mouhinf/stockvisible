@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: stockvisible
+    runtime: python
+    plan: free
+    branch: master
+    buildCommand: pip install -r requirements.txt
+    # Render injecte $PORT ; 0.0.0.0 remplace le "localhost" de .streamlit/config.toml (usage local).
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    healthCheckPath: /_stcore/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3

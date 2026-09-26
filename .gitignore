@@ -41,9 +41,16 @@ Thumbs.db
 # Streamlit
 .streamlit/secrets.toml
 
-# Data files (never commit raw data)
-data/
+# Data files: only the deterministic dev subset is versioned (CC BY 4.0, see README)
+data/*
+!data/raw/
+data/raw/*
 *.csv
 *.parquet
 *.xlsx
 *.xls
+!data/raw/train.parquet
+!data/raw/manifest.json
+
+# Claude Code local permissions
+.claude/settings.local.json
