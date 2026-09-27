@@ -1,7 +1,7 @@
 """Contrat d'entrée : lecture sûre (CSV/Parquet uniquement) et validate(df).
 
 Les règles bloquantes sont les invariants mesurés sur les données réelles
-(voir .claude/skills/stockvisible-data-contract/SKILL.md).
+(voir docs/data-contract.md).
 """
 
 from __future__ import annotations
