@@ -10,6 +10,7 @@ from ui.components import (
     abstention_summary,
     comparison_table,
     import_report,
+    observed_vs_estimated,
     series_frames,
     series_keys,
     series_label,
@@ -37,6 +38,20 @@ st.write(
     f"{summary['jours']} jours · heures en rupture (6 h–22 h) : "
     f"{summary['part_heures_rupture_6_22']:.1%} · jours avec au moins une rupture : "
     f"{summary['jours_avec_rupture_6_22']}"
+)
+gap = observed_vs_estimated(dev, key)
+left, right = st.columns(2)
+left.metric("Ventes observées / jour (validation)", f"{gap['ventes_observées']:.2f}")
+right.metric(
+    "Demande estimée / jour (validation)",
+    f"{gap['demande_estimée']:.2f}",
+    delta=None if gap["écart"] is None else f"{gap['écart']:+.0%} vs ventes observées",
+    delta_color="off",
+)
+st.caption(
+    f"Moyenne sur les {gap['jours']} jours de validation, unités normalisées. Demande ESTIMÉE = ventes "
+    "des heures disponibles + prévision B1 aux heures en rupture de 6 h à 22 h : c'est une "
+    "estimation, pas une mesure de la demande perdue. C'est elle qu'utilise l'écran Acheter."
 )
 st.plotly_chart(sales_availability_figure(train, validation, forecasts))
 abstention = abstention_summary(forecasts[1])

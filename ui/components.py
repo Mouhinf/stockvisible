@@ -53,6 +53,44 @@ def series_summary(train: pd.DataFrame, validation: pd.DataFrame) -> dict[str, f
     }
 
 
+def problem_summary(dev: DevSplits) -> dict[str, float]:
+    """Chiffres du bandeau d'accueil, calculés sur les données dev (train + validation), jamais tapés."""
+    frame = pd.concat([dev.train, dev.validation])
+    return {
+        "séries": int(frame.loc[:, list(SERIES_KEY)].drop_duplicates().shape[0]),
+        "part_heures_rupture_6_22": float(
+            frame["stock_hour6_22_cnt"].sum() / (STOCK_WINDOW_HOURS * len(frame))
+        ),
+    }
+
+
+def problem_banner(summary: dict[str, float]) -> str:
+    return (
+        "Quand un produit est en rupture, la caisse enregistre zéro vente : les ventes observées "
+        "sous-estiment la demande, et on recommande trop peu. Sur "
+        f"{summary['séries']} produits réels de magasins de produits frais, "
+        f"**{100 * summary['part_heures_rupture_6_22']:.0f} % des heures de 6 h à 22 h sont en "
+        "rupture**. StockVisible estime la demande que ces ruptures cachent (écran Comprendre), "
+        "prouve la fiabilité de ses prévisions sur une période jamais vue (ci-dessous) et propose "
+        "quoi racheter sous budget (écran Acheter)."
+    )
+
+
+def observed_vs_estimated(dev: DevSplits, key: SeriesKey) -> dict:
+    """Ventes observées vs demande estimée (celle de l'écran Acheter), moyenne par jour de validation.
+    Estimée = ventes des heures disponibles + B1 aux heures en rupture de 6 h à 22 h."""
+    _, validation = series_frames(dev, key)
+    days, scenarios = daily_demand_scenarios(dev, [key])
+    observed = float(hourly_matrix(validation, "hours_sale").sum(axis=1).mean())
+    estimated = float(scenarios[:, 0].mean())
+    return {
+        "jours": len(days),
+        "ventes_observées": observed,
+        "demande_estimée": estimated,
+        "écart": None if observed <= 0 else estimated / observed - 1,
+    }
+
+
 def comparison_table(validation: pd.DataFrame, forecasts: list[HourlyForecast]) -> pd.DataFrame:
     """Périmètres « heures disponibles » uniquement : c'est là que la vente observée est la demande."""
     table = compare_baselines(validation, forecasts, label="validation")
@@ -211,6 +249,16 @@ def proof_headline(freeze: dict, final: dict) -> str:
         f"{(b1 - ml) / b1:.1%} plus basse que celle de B1 ({b1:.4f}), sur "
         f"{format(final['résultat_moteur_test']['n'], ',').replace(',', ' ')} heures communes."
     )
+
+
+# Libellé de chaque garantie, dans l'ordre de proof_guarantees : les 3 premières sont recalculées à
+# l'affichage (empreintes, fichiers de gel et de test) ; les 2 dernières sont des propriétés du code,
+# prouvées par la suite de tests automatique et non recalculées à l'écran.
+GUARANTEE_LABELS = ("Vérifié", "Vérifié", "Vérifié", "Testé (suite automatique)", "Testé (suite automatique)")
+
+
+def guarantee_label(index: int, ok: bool) -> str:
+    return GUARANTEE_LABELS[index] if ok else "ÉCHEC"
 
 
 def proof_guarantees(freeze: dict, final: dict, freeze_intact: bool) -> list[tuple[bool, str]]:

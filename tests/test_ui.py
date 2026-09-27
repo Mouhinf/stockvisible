@@ -168,3 +168,45 @@ def test_hypotheses_to_products_and_budget_bound():
     assert products[0].unit_cost == 1.0 and products[1].unit_cost is None
     # produit 1 : besoin max 1.2 → 3 lots de 0.5 à 1.0 = 1.5 ; produit 2 sans coût : 0
     assert budget_upper_bound(products, np.array([[1.2, 9.0], [0.4, 1.0]])) == pytest.approx(1.5)
+
+
+def test_problem_banner_numbers_are_computed_not_typed(synthetic_dev):
+    from ui.components import problem_banner, problem_summary
+
+    summary = problem_summary(synthetic_dev)
+    frame = pd.concat([synthetic_dev.train, synthetic_dev.validation])
+    expected = frame["stock_hour6_22_cnt"].sum() / (16 * len(frame))
+    assert summary["séries"] == 3
+    assert summary["part_heures_rupture_6_22"] == pytest.approx(expected)
+    text = problem_banner(summary)
+    assert f"{100 * expected:.0f} %" in text and "3 produits réels" in text
+
+
+def test_observed_vs_estimated_matches_the_basket_demand(synthetic_dev):
+    from stockvisible.baselines import hourly_matrix
+    from ui.components import daily_demand_scenarios, observed_vs_estimated
+
+    key = series_keys(synthetic_dev)[0]
+    _, validation = series_frames(synthetic_dev, key)
+    gap = observed_vs_estimated(synthetic_dev, key)
+    _, scen = daily_demand_scenarios(synthetic_dev, [key])
+    observed = hourly_matrix(validation, "hours_sale").sum(axis=1).mean()
+    assert gap["jours"] == 15
+    assert gap["ventes_observées"] == pytest.approx(observed)
+    assert gap["demande_estimée"] == pytest.approx(scen[:, 0].mean())  # même demande que l'écran Acheter
+    assert gap["écart"] == pytest.approx(scen[:, 0].mean() / observed - 1)
+
+
+def test_observed_vs_estimated_without_sales_has_no_ratio(synthetic_dev):
+    from ui.components import observed_vs_estimated
+
+    key = series_keys(synthetic_dev)[0]
+    silent = DevSplits(
+        train=synthetic_dev.train,
+        validation=synthetic_dev.validation.assign(
+            hours_sale=[[0.0] * 24] * len(synthetic_dev.validation),
+            hours_stock_status=[[0] * 24] * len(synthetic_dev.validation),
+        ),
+    )
+    gap = observed_vs_estimated(silent, key)
+    assert gap["ventes_observées"] == 0 and gap["écart"] is None
