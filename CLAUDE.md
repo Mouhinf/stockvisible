@@ -17,7 +17,8 @@ seed fixée, anti-fuite testé explicitement.
 
 ## Stack figée
 Python 3.12, Streamlit, pandas, NumPy, scikit-learn, Plotly, pyarrow (ACR
-approuvée en M6), pytest, ruff, pip-audit. Aucun ajout sans écrire d'abord une ARCHITECTURE CHANGE REQUEST
+approuvée en M6), pytest, ruff, pip-audit ; tests E2E : @playwright/test (npm, ACR approuvée en M12, outil de test
+uniquement, jamais déployé). Aucun ajout sans écrire d'abord une ARCHITECTURE CHANGE REQUEST
 (raison/bénéfice/coût/risque/alternative) et attendre validation humaine.
 
 ## Interdits

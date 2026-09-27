@@ -1,0 +1,11 @@
+{
+  "name": "stockvisible-e2e",
+  "private": true,
+  "description": "Tests E2E Playwright de StockVisible (outil de test uniquement, jamais déployé)",
+  "scripts": {
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

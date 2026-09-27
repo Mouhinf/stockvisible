@@ -3,11 +3,13 @@
 import streamlit as st
 
 from stockvisible.baselines import B1_MIN_OBS, b0_forecast, b1_forecast
+from stockvisible.validation import MAX_BYTES, InputRejected, read_user_bytes, validate
 from ui.charts import sales_availability_figure
 from ui.common import SELECTED_SERIES, TABLE_FORMAT, require_dev
 from ui.components import (
     abstention_summary,
     comparison_table,
+    import_report,
     series_frames,
     series_keys,
     series_label,
@@ -51,3 +53,34 @@ st.caption(
     f"(trou dans la courbe) s'il a moins de {B1_MIN_OBS} observations comparables. Le moteur gelé "
     "(ML) est évalué sur l'écran Vérifier."
 )
+
+st.subheader("Importer vos données")
+st.caption(
+    "CSV ou Parquet au schéma FreshRetailNet-50K (listes horaires en JSON dans un CSV), "
+    f"{MAX_BYTES // (1024 * 1024)} Mo au plus. Le fichier est lu sans aucune exécution de contenu, "
+    "puis contrôlé par le contrat de données. Les données importées sont celles de l'utilisateur : "
+    "elles ne sont pas mélangées au jeu de référence."
+)
+upload = st.file_uploader("Fichier à contrôler", type=["csv", "parquet"])
+if upload is not None:
+    try:
+        imported = read_user_bytes(upload.name, upload.getvalue())
+    except InputRejected as exc:
+        st.error(f"Fichier refusé avant lecture : {exc}")
+    else:
+        result = import_report(imported, validate(imported))
+        if not result["conforme"]:
+            st.error(f"Fichier non conforme au contrat de données ({len(result['erreurs'])} type(s) d'erreur) :")
+            st.table(result["erreurs"].set_index("Code"))  # tableau HTML : lisible au lecteur d'écran
+        else:
+            st.success(
+                f"Fichier conforme : {result['lignes']} lignes, {result['séries']} série(s), du "
+                f"{result['dates'][0]} au {result['dates'][1]}. Données IMPORTÉES par l'utilisateur."
+            )
+            if result["infos"]:
+                st.caption(f"{result['infos']} ligne(s) avec vente pendant une heure en rupture (attendu).")
+            st.dataframe(
+                result["par_série"],
+                hide_index=True,
+                column_config={"Heures en rupture 6–22 h (%)": st.column_config.NumberColumn(format="%.1f")},
+            )

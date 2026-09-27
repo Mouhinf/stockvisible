@@ -54,3 +54,9 @@ data/raw/*
 
 # Claude Code local permissions
 .claude/settings.local.json
+
+# Playwright / npm (outil de test E2E, M12)
+node_modules/
+test-results/
+playwright-report/
+blob-report/

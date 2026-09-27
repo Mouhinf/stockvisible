@@ -257,3 +257,33 @@ def proof_limits(freeze: dict, final: dict, report: dict | None) -> list[str]:
             limits.append(f"Intervalle de largeur nulle ([0, 0]) aux heures {flat} : calibré, mais "
                           "il n'apporte pas d'information.")
     return limits
+
+
+# ---------------------------------------------------------------- import (F1, M12)
+
+
+def import_report(df: pd.DataFrame, report) -> dict:
+    """Résumé lisible du contrôle d'un fichier importé par l'utilisateur."""
+    errors = [
+        {"Code": i.code, "Problème": i.message, "Lignes concernées": len(i.rows)} for i in report.errors
+    ]
+    infos = [i for i in report.issues if i.severity != "error"]
+    summary = {"lignes": len(df), "conforme": report.ok, "erreurs": pd.DataFrame(errors)}
+    if report.ok:
+        keys = df[list(SERIES_KEY)].drop_duplicates()
+        summary |= {
+            "séries": len(keys),
+            "dates": (str(df["dt"].min()), str(df["dt"].max())),
+            "infos": sum(len(i.rows) for i in infos),
+            "par_série": pd.DataFrame(
+                {
+                    "Série": [series_label((int(s), int(p))) for s, p in keys.to_numpy()],
+                    "Jours": df.groupby(list(SERIES_KEY)).size().to_numpy(),
+                    "Heures en rupture 6–22 h (%)": (
+                        100 * df.groupby(list(SERIES_KEY))["stock_hour6_22_cnt"].sum()
+                        / (STOCK_WINDOW_HOURS * df.groupby(list(SERIES_KEY)).size())
+                    ).to_numpy(),
+                }
+            ),
+        }
+    return summary
