@@ -35,6 +35,9 @@ TEXT_COLORS = ("text", "text_secondary", "accent", "success", "warning", "critic
 FONT_STACK = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
 SPACING = (4, 8, 16, 24, 32, 48)
 MAX_WIDTH_PX = 1200
+# La barre de navigation Streamlit (≈ 60 px) recouvre le haut du contenu : le premier bloc (bandeau
+# d'accueil encadré) doit commencer en dessous. 48 + 32 px, sur l'échelle d'espacement.
+HEADER_CLEARANCE_PX = SPACING[5] + SPACING[4]
 RADIUS_PX = 6
 
 
@@ -57,7 +60,7 @@ def css() -> str:
 <style>
 html, body, .stApp, [data-testid="stAppViewContainer"] {{ font-family: {FONT_STACK}; }}
 [data-testid="stMainBlockContainer"], .block-container {{
-  max-width: {MAX_WIDTH_PX}px; padding-top: {SPACING[4]}px;
+  max-width: {MAX_WIDTH_PX}px; padding-top: {HEADER_CLEARANCE_PX}px;
 }}
 h2, [data-testid="stHeading"] h2 {{ margin-top: {SPACING[4]}px; }}
 [data-testid="stDataFrame"], [data-testid="stMetricValue"], [data-testid="stTable"] {{
