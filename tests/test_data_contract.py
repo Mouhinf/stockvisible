@@ -170,6 +170,11 @@ RAW_PRESENT = (data.RAW_DIR / "manifest.json").exists()
 CACHE_PRESENT = all((data.CACHE_DIR / f"{s}.parquet").exists() for s in data.SPLITS)
 needs_raw = pytest.mark.skipif(not RAW_PRESENT, reason="lancer `python -m stockvisible.data`")
 needs_cache = pytest.mark.skipif(not CACHE_PRESENT, reason="fichiers officiels non téléchargés")
+# L'eval officiel (7 jours) n'est volontairement PAS versionné (M6) : absent d'un clone neuf / de la CI.
+EVAL_PRESENT = (data.RAW_DIR / "eval.parquet").exists()
+needs_eval = pytest.mark.skipif(
+    not EVAL_PRESENT, reason="eval officiel non versionné (M6) : `python -m stockvisible.data` pour le créer"
+)
 
 
 @pytest.fixture(scope="module")
@@ -179,7 +184,8 @@ def manifest() -> dict:
 
 @pytest.fixture(scope="module")
 def real() -> dict[str, pd.DataFrame]:
-    return {s: load_raw(s) for s in data.SPLITS}
+    """train est versionné, donc toujours là ; eval seulement s'il a été reconstruit localement."""
+    return {s: load_raw(s) for s in data.SPLITS if s == "train" or EVAL_PRESENT}
 
 
 @needs_raw
@@ -190,7 +196,10 @@ def test_manifest_traces_real_pinned_source(manifest):
     assert manifest["source_sha256"] == SOURCE_SHA256
     assert manifest["subset_spec"] == asdict(SubsetSpec())
     for split, out in manifest["outputs"].items():
-        assert sha256_file(data.RAW_DIR / out["path"]) == out["sha256"], split
+        path = data.RAW_DIR / out["path"]
+        if split == "eval" and not path.exists():
+            continue  # non versionné (M6) ; vérifié dès qu'il est présent
+        assert sha256_file(path) == out["sha256"], split
 
 
 @needs_raw
@@ -203,11 +212,19 @@ def test_official_split_verified_as_temporal_same_series(manifest):
 
 @needs_raw
 @pytest.mark.touches_test_period
-def test_subset_shape_and_split_nature(real):
+def test_train_subset_shape(real):
     n = SubsetSpec().n_series
-    tr, ev = real["train"], real["eval"]
+    tr = real["train"]
     assert list(tr.columns) == list(CONTRACT_COLUMNS)
     assert tr.groupby(list(SERIES_KEY)).size().eq(90).all() and len(tr) == n * 90
+
+
+@needs_raw
+@needs_eval
+@pytest.mark.touches_test_period
+def test_eval_subset_shape_and_split_nature(real):
+    n = SubsetSpec().n_series
+    tr, ev = real["train"], real["eval"]
     assert ev.groupby(list(SERIES_KEY)).size().eq(7).all() and len(ev) == n * 7
     assert classify_split(tr, ev)["kind"] == "temporal_same_series"
 
