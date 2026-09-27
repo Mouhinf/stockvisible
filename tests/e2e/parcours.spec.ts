@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Parcours critique : import → visualisation → test → budget → panier → validation → export.
@@ -37,7 +37,7 @@ async function upload(page: Page, file: string) {
   await page.getByTestId('stFileUploader').locator('input[type="file"]').setInputFiles(join(FIXTURES, file));
 }
 
-test('parcours critique complet, zéro erreur console', async ({ page }) => {
+test('parcours critique complet, zéro erreur console', async ({ page }, testInfo) => {
   const problems = watchConsole(page);
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1, name: 'Vérifier' })).toBeVisible();
@@ -105,6 +105,7 @@ test('parcours critique complet, zéro erreur console', async ({ page }) => {
   ]);
   expect(jsonDownload.suggestedFilename()).toMatch(/^panier_[0-9a-f]{16}\.json$/);
   const view = JSON.parse(readFileSync(await jsonDownload.path(), 'utf-8'));
+  writeFileSync(testInfo.outputPath('panier_exporte.json'), JSON.stringify(view, null, 2)); // comparaison local/prod
   expect(view.indicateurs.cout_panier).toBe(fullCost);
   expect(view.panier).toHaveLength(3);
   expect(view.moteur.moteur_gele_projet).toMatch(/^ML/);

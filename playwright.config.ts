@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 // Tests E2E du parcours critique. Le serveur Streamlit est lancé par Playwright sur un port
 // dédié (jamais celui du développement), en local uniquement.
 const PORT = 8599;
+// E2E_BASE_URL=https://… : rejoue le parcours contre un déploiement, sans serveur local.
+const REMOTE = process.env.E2E_BASE_URL;
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -13,7 +15,7 @@ export default defineConfig({
   retries: 0,
   reporter: [['list']],
   use: {
-    baseURL: `http://127.0.0.1:${PORT}`,
+    baseURL: REMOTE ?? `http://127.0.0.1:${PORT}`,
     locale: 'fr-FR',
     timezoneId: 'UTC',
     trace: 'retain-on-failure',
@@ -23,13 +25,15 @@ export default defineConfig({
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
-  webServer: {
-    command:
-      `.venv/bin/python -m streamlit run app.py --server.headless true --server.port ${PORT} ` +
-      '--server.address 127.0.0.1 --browser.gatherUsageStats false',
-    url: `http://127.0.0.1:${PORT}/_stcore/health`,
-    reuseExistingServer: false,
-    timeout: 120_000,
-    env: { OMP_NUM_THREADS: '1' },
-  },
+  webServer: REMOTE
+    ? undefined
+    : {
+        command:
+          `.venv/bin/python -m streamlit run app.py --server.headless true --server.port ${PORT} ` +
+          '--server.address 127.0.0.1 --browser.gatherUsageStats false',
+        url: `http://127.0.0.1:${PORT}/_stcore/health`,
+        reuseExistingServer: false,
+        timeout: 120_000,
+        env: { OMP_NUM_THREADS: '1' },
+      },
 });
