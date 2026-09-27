@@ -96,9 +96,11 @@ def test_app_runs_without_exception_on_real_dev_data(dev):
 
     at = AppTest.from_file(str(APP), default_timeout=120).run()
     assert not at.exception, [e.value for e in at.exception]
-    assert not at.error
-    assert "RÉELLES" in at.caption[0].value and "ni chargée ni affichée" in at.caption[0].value
-    assert len(at.dataframe) == 4 and len(at.selectbox[0].options) == 500  # 2 B0/B1 + hypothèses + panier
+    assert [t.value for t in at.title] == ["Vérifier"]  # la preuve d'abord
+    at.switch_page("ui/pages/comprendre.py").run()
+    assert not at.exception and not at.error, [e.value for e in at.exception]
+    assert "RÉELLES" in at.caption[0].value and "Période test non affichée" in at.caption[0].value
+    assert len(at.dataframe) == 1 and len(at.selectbox[0].options) == 500
     assert len(at.get("plotly_chart")) == 1
 
     # set_value (valeur brute) et non select_index : AppTest re-formate le libellé déjà formaté.
@@ -113,6 +115,7 @@ def test_budget_slider_really_recomputes_the_basket(dev):
     from streamlit.testing.v1 import AppTest
 
     at = AppTest.from_file(str(APP), default_timeout=120).run()
+    at.switch_page("ui/pages/acheter.py").run()
     assert not at.exception, [e.value for e in at.exception]
     slider = at.slider[0]
     upper = slider.max
@@ -121,7 +124,7 @@ def test_budget_slider_really_recomputes_the_basket(dev):
         at.slider[0].set_value(budget).run()
         assert not at.exception, [e.value for e in at.exception]
         cost = float(next(m for m in at.metric if m.label == "Coût du panier").value)
-        lots = tuple(at.dataframe[3].value["Lots achetés"])
+        lots = tuple(at.dataframe[-1].value["Lots achetés"])
         return cost, lots
 
     full_cost, full_lots = basket_state(upper)

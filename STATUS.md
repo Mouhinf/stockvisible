@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Dernier milestone | M10-responsible-ai (M7 → M10 non encore poussés, donc pas encore déployés) |
+| Dernier milestone | M11-ui-3-screens (M7 → M11 non encore poussés, donc pas encore déployés) |
 | URL publique | https://stockvisible.onrender.com |
 | Vérification HTTPS | 2026-09-26 18:4x GMT : `curl -sf` → 200 ; `/_stcore/health` → `ok` ; http → 301 vers https ; certificat valide (expire le 2026-12-20) |
 | Vérification navigateur | session complète sur l'URL publique : graphique, 4 tableaux, changement de série ; 0 erreur page / console / logs |
@@ -24,4 +24,6 @@ minutes avant une démo.
 - F4 DECIDE : panier optimal sous budget (coûts et stocks = hypothèses saisies).
 - IA responsable : abstention visible à l'écran ; intervalle 80 % du moteur, couverture
   empirique 79,5 % sur la validation (jours jamais vus en calibration).
+- Interface : 3 écrans dans l'ordre Vérifier → Comprendre → Acheter ; design system sobre
+  (design-system/MASTER.md), contrastes WCAG AA vérifiés par les tests.
 - F5 ACT : pas encore commencé.

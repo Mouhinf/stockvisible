@@ -142,7 +142,9 @@ def test_app_shows_abstention_and_interval_status(dev):
         if b1_forecast(*series_frames(dev, k)).abstained.any()
     )
     at = AppTest.from_file(str(APP), default_timeout=120).run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert any(m.label == "Couverture empirique de l'intervalle 80 %" for m in at.metric)  # Vérifier
+    at.switch_page("ui/pages/comprendre.py").run()
     at.selectbox[0].set_value(key).run()
     assert not at.exception, [e.value for e in at.exception]
     assert any("Abstention" in w.value for w in at.warning) or any("Abstention" in e.value for e in at.error)
-    assert any(m.label == "Couverture empirique de l'intervalle" for m in at.metric)

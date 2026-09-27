@@ -3,3 +3,38 @@ gatherUsageStats = false
 
 [server]
 address = "localhost"
+
+# Thème : traduction de design-system/MASTER.md (valeurs identiques à ui/theme.py, vérifiées par
+# tests/test_design.py). Thème clair uniquement.
+[theme]
+base = "light"
+primaryColor = "#1F4E8C"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F6F8"
+textColor = "#1B1F24"
+borderColor = "#D9DDE3"
+dataframeBorderColor = "#D9DDE3"
+dataframeHeaderBackgroundColor = "#F5F6F8"
+linkColor = "#1F4E8C"
+font = "sans-serif"
+baseFontSize = 15
+headingFontSizes = ["1.75rem", "1.25rem", "1.0625rem"]
+headingFontWeights = [600, 600, 600]
+metricValueFontSize = "1.75rem"
+baseRadius = "6px"
+showWidgetBorder = true
+blueColor = "#1F4E8C"
+blueTextColor = "#1F4E8C"
+blueBackgroundColor = "#EAF0F8"
+greenColor = "#1E7B4A"
+greenTextColor = "#1E7B4A"
+greenBackgroundColor = "#E8F4EE"
+yellowColor = "#A15C00"
+yellowTextColor = "#A15C00"
+yellowBackgroundColor = "#FDF3E4"
+orangeColor = "#A15C00"
+orangeTextColor = "#A15C00"
+orangeBackgroundColor = "#FDF3E4"
+redColor = "#B42318"
+redTextColor = "#B42318"
+redBackgroundColor = "#FCEBEA"

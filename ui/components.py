@@ -181,3 +181,79 @@ def interval_summary(report: dict | None) -> dict:
             f"{report['jours_évaluation'][1]}, jamais vues en calibration.{note}"
         ),
     }
+
+
+# ---------------------------------------------------------------- écran Vérifier (M11)
+
+PROOF_MODELS = (("ML (glissant)", "ML — moteur gelé"), ("B1 (glissant)", "B1"), ("B0 (glissant)", "B0"))
+
+
+def _test_metrics(final: dict) -> dict[str, dict]:
+    engine = f"{final['moteur_gelé']} (glissant)"
+    return {engine: final["résultat_moteur_test"], **final["contexte_test"]}
+
+
+def proof_table(freeze: dict, final: dict) -> pd.DataFrame:
+    """Validation (M8) et test final (M9) côte à côte, lus tels quels dans les fichiers JSON."""
+    val = freeze["métriques_validation_périmètre_principal"]
+    test = _test_metrics(final)
+    rows = []
+    for key, label in PROOF_MODELS:
+        rows.append(
+            {
+                "Modèle": label,
+                "MAE validation": val[key]["mae"],
+                "Biais validation": val[key]["bias"],
+                "MAE test final": test[key]["mae"],
+                "Biais test final": test[key]["bias"],
+                "Couverture test (%)": 100 * test[key]["couverture"],
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def proof_headline(freeze: dict, final: dict) -> str:
+    test = _test_metrics(final)
+    ml, b1 = test["ML (glissant)"]["mae"], test["B1 (glissant)"]["mae"]
+    return (
+        f"Moteur gelé : {final['moteur_gelé']}. Sur le test final, exécuté une seule fois le "
+        f"{final['horodatage_fin_utc'][:10]}, son erreur moyenne (MAE {ml:.4f}) est "
+        f"{(b1 - ml) / b1:.1%} plus basse que celle de B1 ({b1:.4f}), sur "
+        f"{format(final['résultat_moteur_test']['n'], ',').replace(',', ' ')} heures communes."
+    )
+
+
+def proof_guarantees(freeze: dict, final: dict, freeze_intact: bool) -> list[tuple[bool, str]]:
+    val_end = freeze["périodes"]["validation"][1]
+    test_start = freeze["périodes"]["début_test_réservé"]
+    return [
+        (freeze_intact, "Configuration du moteur identique au gel (empreintes SHA-256 vérifiées à l'instant)"),
+        (val_end < test_start, f"Moteur choisi sur la validation seule (jusqu'au {val_end}, test à partir du {test_start})"),
+        (final["ouvertures_du_test"] == 1, (f"Test final ouvert {final['ouvertures_du_test']} fois, résultat horodaté "
+                                           f"{final['horodatage_fin_utc']}")),
+        (True, "Découpage chronologique par série (60 / 15 / 15 jours), jamais aléatoire"),
+        (True, "Anti-fuite testé dans la suite : canaris, perturbation des jours futurs, contrôles négatifs"),
+    ]
+
+
+def proof_limits(freeze: dict, final: dict, report: dict | None) -> list[str]:
+    test = _test_metrics(final)
+    val = freeze["métriques_validation_périmètre_principal"]
+    ml_t, b1_t = test["ML (glissant)"], test["B1 (glissant)"]
+    adv_val = (val["B1 (glissant)"]["mae"] - val["ML (glissant)"]["mae"]) / val["B1 (glissant)"]["mae"]
+    adv_test = (b1_t["mae"] - ml_t["mae"]) / b1_t["mae"]
+    limits = [
+        (f"Le moteur sous-estime : biais {ml_t['bias']:+.4f} sur le test, contre {b1_t['bias']:+.4f} "
+        "pour B1 ; commander sur sa base risque de commander trop peu."),
+        f"L'avance sur B1 se réduit : {adv_val:.1%} en validation, {adv_test:.1%} sur le test.",
+        ("Les données de la période test ont été lues avant le découpage (contrôle qualité) et sont "
+        "publiques dans le dépôt ; elles n'ont servi à aucune décision."),
+        "Ventes normalisées par le fournisseur : aucune unité monétaire.",
+    ]
+    if report is not None:
+        flat = [h["hour"] for h in report["par_heure"]  # largeur < 1e-4 unité normalisée
+                if h["calibrated"] and abs(h["high"] - h["low"]) < 1e-4 and abs(h["high"]) < 1e-4]
+        if flat:
+            limits.append(f"Intervalle de largeur nulle ([0, 0]) aux heures {flat} : calibré, mais "
+                          "il n'apporte pas d'information.")
+    return limits
