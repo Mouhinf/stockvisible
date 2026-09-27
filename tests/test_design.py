@@ -123,3 +123,14 @@ def test_night_zero_width_interval_is_disclosed_as_a_limit():
         pytest.skip("rapport de calibration absent")
     limits = proof_limits(FREEZE, FINAL, report)
     assert any("largeur nulle" in text and "0, 1, 2, 3, 4, 5" in text for text in limits)
+
+
+def test_tab_icon_is_the_galsen_logo_not_streamlit():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    assert "page_icon=str(FAVICON)" in source
+    icon = ROOT / "ui" / "assets" / "galsen-favicon.png"
+    header = icon.read_bytes()[:24]
+    assert header[:8] == b"\x89PNG\r\n\x1a\n"  # vraie image PNG
+    width, height = int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
+    assert (width, height) == (32, 32)
+
