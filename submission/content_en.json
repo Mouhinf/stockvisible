@@ -9,24 +9,39 @@
     "demo_alt_label": "Fallback",
     "in_short": "In short",
     "problem": "1. Problem and user",
-    "data": "2. Data",
-    "method": "3. Method and result",
+    "data": "3. Data",
+    "method": "4. Method and result",
     "table_model": "Model",
     "table_val_mae": "Validation MAE",
     "table_test_mae": "Final test MAE",
     "table_test_bias": "Final test bias",
     "verbatim_title": "Sealed final test — verbatim excerpt of logs/final_test_result.json",
-    "architecture": "4. Architecture",
-    "limits": "5. Limitations and unverified assumptions",
-    "rai": "6. Responsible AI",
-    "evidence": "7. Judging criterion → evidence",
+    "architecture": "6. Architecture",
+    "limits": "8. Limitations and unverified assumptions",
+    "rai": "7. Responsible AI",
+    "evidence": "9. Judging criterion → evidence",
     "evidence_criterion": "Criterion (weight)",
     "evidence_proof": "Evidence",
     "evidence_test": "Test",
-    "ai_usage": "8. AI and tools declaration",
-    "roadmap": "9. After the hackathon",
-    "pending": "10. Demo and jury audit",
-    "sources_note": "Every figure in this dossier comes from README.md, logs/final_test_result.json, docs/judging-evidence.md or AI_USAGE.md (repository, branch final-hackathon-polish). Sales values are normalised, with no unit."
+    "ai_usage": "11. AI and tools declaration",
+    "roadmap": "13. After the hackathon",
+    "pending": "14. Demo and jury audit",
+    "sources_note": "Every figure in this dossier comes from README.md, logs/final_test_result.json, docs/judging-evidence.md or AI_USAGE.md (repository, branch final-hackathon-polish). Sales values are normalised, with no unit.",
+    "screens": "2. What the application does",
+    "discipline": "5. Scientific discipline",
+    "run": "10. Installation, tests and deployment",
+    "licences": "12. Licences",
+    "screen_col": "Screen",
+    "screen_desc_col": "What you see",
+    "fn_col": "Function",
+    "modules_col": "Modules",
+    "role_col": "Role",
+    "install_title": "Installation (Python 3.12 required)",
+    "tests_title": "Tests",
+    "deploy_title": "Render deployment (Frankfurt region, redeployed on every push to master)",
+    "field_col": "Field",
+    "value_col": "Value",
+    "chronology_title": "Timeline"
   },
   "cover": {
     "title": "StockVisible",
@@ -55,7 +70,6 @@
   ],
   "method": [
     "B0: median of sales in the same time slot, stock-outs included. B1: the same median restricted to hours declared available, with abstention. ML: quantile gradient boosting (scikit-learn) on strictly past features.",
-    "Chronological split per series: 60 training days, 15 validation days, 15 test days. Rule written before any result: the ML is kept only if it beats B1 on validation, otherwise B1 becomes the engine. Two looks at the validation set are declared (first model degenerate, fixed once), then the configuration was frozen.",
     "Rolling day-ahead (J+1) hourly forecasts, hours when the product was available, the same hours for all three models. On the final test, opened a single time, the ML's error is 3.2% lower than B1's (5.4% on validation). It under-forecasts (negative bias, close to B0): this is shown on screen, and it is why the basket does not use it.",
     "The masked-data test is a reconstruction / fidelity test: it measures the fidelity of the reconstruction, not the real lost demand. It is not proof of recovering real demand."
   ],
@@ -65,8 +79,8 @@
     "B0 (glissant)": "B0 (median, stock-outs included)"
   },
   "architecture": [
-    "Five functions: F1 data (verified subset, data contract, safe import), F2 reveal (sales, availability, estimated demand), F3 verify (baselines, model, selection, freeze, single final test, interval), F4 decide (optimal basket within budget), F5 act (validation and CSV / JSON export identical to the screen).",
-    "Three-screen Streamlit application deployed on Render. No model is trained at run time: the Verify screen reads the versioned results."
+    "app.py: router of the three screens (st.navigation). No model is trained at run time: the Verify screen reads engine_freeze.json, logs/final_test_result.json and logs/interval_calibration.json.",
+    "Interface: Streamlit 1.64, Plotly charts, design system in design-system/MASTER.md. Data contract and decision log: docs/data-contract.md."
   ],
   "limits": [
     "Real Chinese data (Dingdong), normalised: no currency unit, no FCFA, no data from Senegal.",
@@ -84,12 +98,36 @@
     "Real / simulated separation: real data flagged as such; costs and stock levels flagged as assumptions; synthetic test files labelled; lost demand always presented as estimated. Limitations shown on screen."
   ],
   "evidence": [
-    ["Problem and value (20)", "20.2% of 6:00–22:00 hours out of stock; problem banner computed from the data; observed sales and estimated demand side by side", "test_problem_banner_numbers_are_computed_not_typed"],
-    ["Functionality (20)", "Import → visualisation → evidence → budget → basket → validation → export path, local and production, desktop and mobile, zero console errors; export identical to the screen", "e2e/parcours.spec.ts ; test_export_is_strictly_what_the_screen_shows"],
-    ["Use of AI (20)", "ML against B0 / B1, rule written before any result, choice on validation only, frozen configuration (SHA-256 fingerprints); final test opened a single time", "test_select_engine_never_receives_test_data ; test_result_is_a_single_opening_of_the_frozen_engine"],
-    ["Testing and reliability (15)", "Reproducible split; anti-leakage through canaries and perturbation; 9 negative controls; dress rehearsal of the final test; GitHub Actions CI", "test_anti_leak_fails_on_injected_leak ; test_dress_rehearsal_on_validation_reproduces_frozen_metrics"],
-    ["Experience and demo (15)", "Three screens Verify → Understand → Buy; at most three metrics per screen; computed WCAG AA contrasts", "test_at_most_three_metrics_per_screen ; test_every_text_color_meets_wcag_aa"],
-    ["Responsible AI and data (10)", "Visible abstention; interval coverage 79.5%; real CC BY 4.0 data, pinned revision; assumptions and synthetic files labelled", "test_synthetic_series_without_enough_history_triggers_abstention ; test_real_report_uses_validation_only_and_is_consistent"]
+    [
+      "Problem and value (20)",
+      "20.2% of 6:00–22:00 hours out of stock; problem banner computed from the data; observed sales and estimated demand side by side",
+      "test_problem_banner_numbers_are_computed_not_typed"
+    ],
+    [
+      "Functionality (20)",
+      "Import → visualisation → evidence → budget → basket → validation → export path, local and production, desktop and mobile, zero console errors; export identical to the screen",
+      "e2e/parcours.spec.ts ; test_export_is_strictly_what_the_screen_shows"
+    ],
+    [
+      "Use of AI (20)",
+      "ML against B0 / B1, rule written before any result, choice on validation only, frozen configuration (SHA-256 fingerprints); final test opened a single time",
+      "test_select_engine_never_receives_test_data ; test_result_is_a_single_opening_of_the_frozen_engine"
+    ],
+    [
+      "Testing and reliability (15)",
+      "Reproducible split; anti-leakage through canaries and perturbation; 9 negative controls; dress rehearsal of the final test; GitHub Actions CI",
+      "test_anti_leak_fails_on_injected_leak ; test_dress_rehearsal_on_validation_reproduces_frozen_metrics"
+    ],
+    [
+      "Experience and demo (15)",
+      "Three screens Verify → Understand → Buy; at most three metrics per screen; computed WCAG AA contrasts",
+      "test_at_most_three_metrics_per_screen ; test_every_text_color_meets_wcag_aa"
+    ],
+    [
+      "Responsible AI and data (10)",
+      "Visible abstention; interval coverage 79.5%; real CC BY 4.0 data, pinned revision; assumptions and synthetic files labelled",
+      "test_synthetic_series_without_enough_history_triggers_abstention ; test_real_report_uses_validation_only_and_is_consistent"
+    ]
   ],
   "ai_usage": [
     "In the product: a scikit-learn tabular model, with no LLM and no external AI API. NVIDIA Brev: not used.",
@@ -105,5 +143,99 @@
   "pending": [
     "Demo script and video (M18): to come.",
     "Versioned jury audit (M19): to come."
+  ],
+  "screens": [
+    [
+      "Verify (home)",
+      "The problem in one sentence, then the evidence: errors of the ML engine and of the two baselines on validation and on the final test, uncertainty, guarantees, limitations"
+    ],
+    [
+      "Understand",
+      "For one product: hour-by-hour sales, availability, observed sales vs estimated demand per day, B0 / B1 forecasts, abstention; import of a file checked against the data contract"
+    ],
+    [
+      "Buy",
+      "Costs, lots and stock levels entered as assumptions; budget; optimal basket (covered demand, shortfall); validation then CSV / JSON export with provenance"
+    ]
+  ],
+  "screens_intro": "The manager does not need to read the code: the application first shows them the evidence of reliability (Verify screen), then the demand for one product (Understand), then a basket within budget that they validate and export (Buy).",
+  "discipline_flow": "DATA → TRAIN (60 d) → VALIDATION (15 d) → ENGINE CHOICE → FREEZE → FINAL TEST ONCE ONLY (15 d)",
+  "discipline": [
+    "Chronological split per series, never random.",
+    "Selection rule written before any result: the ML is kept only if it beats B1 on validation, otherwise B1 becomes the engine.",
+    "Anti-leakage tested: canaries, perturbation of future days, and 9 negative controls (leaks injected on purpose, which the suite must detect).",
+    "Two looks at the validation set are declared: the first model was degenerate (it predicted 0 everywhere); it was fixed once, then the configuration was frozen."
+  ],
+  "architecture_table": [
+    [
+      "F1 DATA",
+      "data.py, validation.py",
+      "Deterministic, verified (SHA-256) subset of the dataset; data contract; safe reading of imported files (CSV / Parquet, size and row caps, no execution of content)"
+    ],
+    [
+      "F2 REVEAL",
+      "ui/pages/comprendre.py, ui/charts.py",
+      "Hourly sales, declared availability, estimated demand"
+    ],
+    [
+      "F3 VERIFY",
+      "splits.py, baselines.py, features.py, model.py, evaluation.py, selection.py, final_test.py, uncertainty.py",
+      "Chronological split, B0 / B1 baselines, strictly past features, ML model, selection on validation, freeze, single final test, empirical interval"
+    ],
+    [
+      "F4 DECIDE",
+      "allocation.py",
+      "Optimal basket within budget, bounded exhaustive enumeration (≤ 3 products), whole lots"
+    ],
+    [
+      "F5 ACT",
+      "exports.py",
+      "Basket validation, CSV / JSON export strictly identical to the screen"
+    ]
+  ],
+  "tests_note": "On a fresh clone, 2 tests are skipped because they need data files that are not versioned (official eval, download cache), with an explicit reason. GitHub Actions CI: ruff, pytest, pip-audit (informational). Free Render instance (512 MB, sleeps after 15 min of inactivity). No secret is needed.",
+  "licences": [
+    "Data: FreshRetailNet-50K, Dingdong-Inc, CC BY 4.0.",
+    "Dependencies: open-source libraries listed in requirements.txt (pandas, NumPy, scikit-learn, Streamlit, Plotly, pyarrow, pytest, ruff, pip-audit) and package.json (@playwright/test, testing tool only), each under its own licence.",
+    "StockVisible code: no licence file has been added to the repository yet; without an explicit licence, rights remain reserved to the author.",
+    "Tab logo: Galsen Technologie icon (galsentechnologie.com)."
+  ],
+  "chronology": "The Git history is authoritative. First commit on 26/09/2026 at 16:03 UTC; data, model, freeze, final test and screens (M0 to M11) committed on 26/09/2026 and overnight until 27/09 at 00:56 UTC; E2E tests, security audit, export, CI, production and finishing work on 27/09/2026.",
+  "install": [
+    "python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt",
+    ".venv/bin/streamlit run app.py                       # http://localhost:8501"
+  ],
+  "tests": [
+    ".venv/bin/ruff check .",
+    ".venv/bin/pytest -q                                  # full suite (519 tests collected)",
+    ".venv/bin/pytest -q -m \"not touches_test_period\"     # without reading the reserved test period",
+    "npm ci && npx playwright test                        # E2E path, desktop + mobile",
+    "E2E_BASE_URL=https://stockvisible.onrender.com npx playwright test   # same path in production"
+  ],
+  "deploy": [
+    [
+      "Runtime",
+      "Python 3"
+    ],
+    [
+      "Branch",
+      "master"
+    ],
+    [
+      "Build Command",
+      "pip install -r requirements.txt"
+    ],
+    [
+      "Start Command",
+      "streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
+    ],
+    [
+      "Health Check Path",
+      "/_stcore/health"
+    ],
+    [
+      "PYTHON_VERSION",
+      "3.12.3"
+    ]
   ]
 }

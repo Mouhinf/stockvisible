@@ -1,5 +1,7 @@
 # StockVisible
 
+*English version: [README.en.md](README.en.md).*
+
 **Voir la demande que les ruptures cachent, puis décider quoi racheter sous budget — avec des
 prévisions dont la fiabilité est prouvée.**
 

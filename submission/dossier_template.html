@@ -55,6 +55,8 @@ pre.verbatim { background: var(--surface); border: 1px solid var(--border); bord
 .verbatim-title { font-size: 8.4pt; color: var(--text-secondary); margin: var(--space-2) 0 2px; }
 .pending li { color: var(--warning); }
 .keep { break-inside: avoid; }
+.flow { font-weight: 600; color: var(--accent); font-size: 8.8pt; }
+td.mono, td .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 7.4pt; }
 </style>
 </head>
 <body>
@@ -79,6 +81,10 @@ pre.verbatim { background: var(--surface); border: 1px solid var(--border); bord
 <h2>{{labels.problem}}</h2>
 {{{problem}}}
 
+<h2>{{labels.screens}}</h2>
+<p>{{screens_intro}}</p>
+{{{screens_table}}}
+
 <h2>{{labels.data}}</h2>
 {{{data}}}
 
@@ -90,23 +96,48 @@ pre.verbatim { background: var(--surface); border: 1px solid var(--border); bord
   <pre class="verbatim">{{{verbatim}}}</pre>
 </div>
 
-<h2>{{labels.architecture}}</h2>
-{{{architecture}}}
+<h2>{{labels.discipline}}</h2>
+<p class="flow">{{discipline_flow}}</p>
+{{{discipline}}}
 
-<h2>{{labels.limits}}</h2>
-{{{limits}}}
+<h2>{{labels.architecture}}</h2>
+{{{architecture_table}}}
+{{{architecture}}}
 
 <h2>{{labels.rai}}</h2>
 {{{rai}}}
 
+<h2>{{labels.limits}}</h2>
+{{{limits}}}
+
 <h2>{{labels.evidence}}</h2>
 {{{evidence_table}}}
+
+<h2>{{labels.run}}</h2>
+<div class="keep">
+  <div class="verbatim-title">{{labels.install_title}}</div>
+  <pre class="verbatim">{{{install}}}</pre>
+</div>
+<div class="keep">
+  <div class="verbatim-title">{{labels.tests_title}}</div>
+  <pre class="verbatim">{{{tests}}}</pre>
+</div>
+<p>{{tests_note}}</p>
+<div class="keep">
+  <div class="verbatim-title">{{labels.deploy_title}}</div>
+  {{{deploy_table}}}
+</div>
 
 <h2>{{labels.ai_usage}}</h2>
 {{{ai_usage}}}
 
+<h2>{{labels.licences}}</h2>
+{{{licences}}}
+
 <h2>{{labels.roadmap}}</h2>
 {{{roadmap}}}
+<div class="verbatim-title">{{labels.chronology_title}}</div>
+<p>{{chronology}}</p>
 
 <h2>{{labels.pending}}</h2>
 <div class="pending">{{{pending}}}</div>

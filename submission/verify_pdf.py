@@ -13,6 +13,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
+# Cible élargie de 3-4 à 6 pages : dossier détaillé à partir du README (demande utilisateur).
+PAGES = (3, 6)
 SOURCES = ["README.md", "logs/final_test_result.json", "docs/judging-evidence.md", "AI_USAGE.md"]
 # Nombres qui ne sont pas des affirmations : date du dossier, numéros de milestones du calendrier de
 # soumission (M18, M19), pagination, numéros de section.
@@ -68,8 +70,8 @@ def check(lang: str, name: str, blob: str) -> tuple[list[str], list[str], Counte
     images = subprocess.run(["pdfimages", "-list", str(pdf)], capture_output=True, text=True, check=True).stdout
     n_images = max(0, len(images.strip().splitlines()) - 2)
     report.append(f"{pdf.name}: {n} pages, {size / 1024:.0f} Ko, {len(full)} caractères de texte, {n_images} image(s)")
-    if not 3 <= n <= 4:
-        problems.append(f"{name}: {n} pages hors cible 3-4")
+    if not PAGES[0] <= n <= PAGES[1]:
+        problems.append(f"{name}: {n} pages hors cible {PAGES[0]}-{PAGES[1]}")
     if size >= 5 * 1024 * 1024:
         problems.append(f"{name}: taille {size} >= 5 Mo")
     if len(full) < 3000 or n_images:
@@ -84,6 +86,11 @@ def check(lang: str, name: str, blob: str) -> tuple[list[str], list[str], Counte
         "tableau des résultats": ("0.0456" if lang == "en" else "0,0456", "0.0475" if lang == "en" else "0,0475"),
         "tableau critère → preuve": ("test_problem_banner", "test_real_report_uses_validation"),
         "extrait verbatim": ('"ouvertures_du_test"', '"B1 (glissant)"'),
+        "tableau des écrans": {"fr": ("Le problème en une phrase", "export CSV / JSON avec provenance"),
+                               "en": ("The problem in one sentence", "export with provenance")}[lang],
+        "tableau d'architecture": ("F1 DATA", "F5 ACT"),
+        "bloc des tests": ("ruff check", "E2E_BASE_URL"),
+        "tableau de déploiement": ("Build Command", "PYTHON_VERSION"),
     }
     for label, (first, last) in spans.items():
         where = [i for i, page in enumerate(per_page, 1) if first in page]

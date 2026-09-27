@@ -90,6 +90,17 @@ def evidence_table(content: dict) -> str:
     return f"<table class='evidence'>{head}{body}</table>"
 
 
+def table(head: list[str], rows: list[list[str]], mono_cols: tuple[int, ...] = (), cls: str = "") -> str:
+    th = "".join(f"<th>{esc(h)}</th>" for h in head)
+    body = "".join(
+        "<tr>" + "".join(
+            f"<td class='mono'>{esc(c)}</td>" if i in mono_cols else f"<td>{esc(c)}</td>" for i, c in enumerate(row)
+        ) + "</tr>"
+        for row in rows
+    )
+    return f"<table class='{cls}'><tr>{th}</tr>{body}</table>"
+
+
 def theme_vars() -> str:
     lines = [f"  --{k.replace('_', '-')}: {v};" for k, v in theme.COLORS.items()]
     lines += [f"  --space-{i}: {px}px;" for i, px in enumerate(theme.SPACING)]
@@ -113,6 +124,17 @@ def render(template: str, content: dict) -> str:
         "ai_usage": bullets(content["ai_usage"]),
         "roadmap": bullets(content["roadmap"]),
         "pending": bullets(content["pending"]),
+        "screens_table": table([content["labels"]["screen_col"], content["labels"]["screen_desc_col"]],
+                               content["screens"], cls="screens"),
+        "discipline": bullets(content["discipline"]),
+        "architecture_table": table([content["labels"]["fn_col"], content["labels"]["modules_col"],
+                                     content["labels"]["role_col"]], content["architecture_table"],
+                                    mono_cols=(1,), cls="architecture"),
+        "install": esc("\n".join(content["install"])),
+        "tests": esc("\n".join(content["tests"])),
+        "deploy_table": table([content["labels"]["field_col"], content["labels"]["value_col"]], content["deploy"],
+                              mono_cols=(1,), cls="deploy"),
+        "licences": bullets(content["licences"]),
     }
     out = re.sub(r"\{\{\{(\w+)\}\}\}", lambda m: fragments[m.group(1)], template)
 

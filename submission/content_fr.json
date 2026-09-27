@@ -9,24 +9,39 @@
     "demo_alt_label": "Secours",
     "in_short": "En bref",
     "problem": "1. Problème et utilisateur",
-    "data": "2. Données",
-    "method": "3. Méthode et résultat",
+    "data": "3. Données",
+    "method": "4. Méthode et résultat",
     "table_model": "Modèle",
     "table_val_mae": "MAE validation",
     "table_test_mae": "MAE test final",
     "table_test_bias": "Biais test final",
     "verbatim_title": "Test final scellé — extrait verbatim de logs/final_test_result.json",
-    "architecture": "4. Architecture",
-    "limits": "5. Limites et hypothèses non vérifiées",
-    "rai": "6. IA responsable",
-    "evidence": "7. Critère du jury → preuve",
+    "architecture": "6. Architecture",
+    "limits": "8. Limites et hypothèses non vérifiées",
+    "rai": "7. IA responsable",
+    "evidence": "9. Critère du jury → preuve",
     "evidence_criterion": "Critère (poids)",
     "evidence_proof": "Preuve",
     "evidence_test": "Test",
-    "ai_usage": "8. Déclaration IA et outils",
-    "roadmap": "9. Après le hackathon",
-    "pending": "10. Démo et audit jury",
-    "sources_note": "Chaque chiffre de ce dossier provient de README.md, logs/final_test_result.json, docs/judging-evidence.md ou AI_USAGE.md (dépôt, branche final-hackathon-polish). Valeurs de vente normalisées, sans unité."
+    "ai_usage": "11. Déclaration IA et outils",
+    "roadmap": "13. Après le hackathon",
+    "pending": "14. Démo et audit jury",
+    "sources_note": "Chaque chiffre de ce dossier provient de README.md, logs/final_test_result.json, docs/judging-evidence.md ou AI_USAGE.md (dépôt, branche final-hackathon-polish). Valeurs de vente normalisées, sans unité.",
+    "screens": "2. Ce que fait l'application",
+    "discipline": "5. Discipline scientifique",
+    "run": "10. Installation, tests et déploiement",
+    "licences": "12. Licences",
+    "screen_col": "Écran",
+    "screen_desc_col": "Ce qu'on y voit",
+    "fn_col": "Fonction",
+    "modules_col": "Modules",
+    "role_col": "Rôle",
+    "install_title": "Installation (Python 3.12 requis)",
+    "tests_title": "Tests",
+    "deploy_title": "Déploiement Render (région Frankfurt, redéployé à chaque push sur master)",
+    "field_col": "Champ",
+    "value_col": "Valeur",
+    "chronology_title": "Chronologie"
   },
   "cover": {
     "title": "StockVisible",
@@ -55,7 +70,6 @@
   ],
   "method": [
     "B0 : médiane des ventes au même créneau, ruptures comprises. B1 : même médiane limitée aux heures déclarées disponibles, avec abstention. ML : gradient boosting quantile (scikit-learn) sur des variables strictement passées.",
-    "Découpage chronologique par série : 60 jours d'entraînement, 15 de validation, 15 de test. Règle écrite avant tout résultat : le ML n'est retenu que s'il bat B1 sur la validation, sinon B1 devient le moteur. Deux regards sur la validation sont déclarés (premier modèle dégénéré, corrigé une fois), puis la configuration a été gelée.",
     "Prévisions horaires glissantes à J+1, heures où le produit était disponible, mêmes heures pour les trois modèles. Sur le test final, ouvert une seule fois, le ML a une erreur 3,2 % plus basse que B1 (5,4 % en validation). Il sous-prévoit (biais négatif, proche de B0) : c'est affiché à l'écran, et c'est pourquoi le panier ne l'utilise pas.",
     "Le test à données masquées est un test de reconstruction / fidélité : il mesure la fidélité de la reconstruction, pas la demande perdue réelle. Ce n'est pas une preuve de récupération de la demande réelle."
   ],
@@ -65,8 +79,8 @@
     "B0 (glissant)": "B0 (médiane, ruptures comprises)"
   },
   "architecture": [
-    "Cinq fonctions : F1 données (sous-ensemble vérifié, contrat de données, import sûr), F2 révélation (ventes, disponibilité, demande estimée), F3 vérification (références, modèle, sélection, gel, test final unique, intervalle), F4 décision (panier optimal sous budget), F5 action (validation et export CSV / JSON identique à l'écran).",
-    "Application Streamlit à trois écrans, déployée sur Render. Aucun modèle n'est entraîné à l'exécution : l'écran Vérifier lit les résultats versionnés."
+    "app.py : routeur des trois écrans (st.navigation). Aucun modèle n'est entraîné à l'exécution : l'écran Vérifier lit engine_freeze.json, logs/final_test_result.json et logs/interval_calibration.json.",
+    "Interface : Streamlit 1.64, graphiques Plotly, design system dans design-system/MASTER.md. Contrat de données et journal des décisions : docs/data-contract.md."
   ],
   "limits": [
     "Données réelles chinoises (Dingdong), normalisées : aucune unité monétaire, aucun FCFA, aucune donnée du Sénégal.",
@@ -84,12 +98,36 @@
     "Séparation réel / simulé : données réelles signalées comme telles ; coûts et stocks signalés comme hypothèses ; fichiers de test synthétiques étiquetés ; demande perdue toujours présentée comme estimée. Limites affichées à l'écran."
   ],
   "evidence": [
-    ["Problème et valeur (20)", "20,2 % des heures 6 h–22 h en rupture ; bandeau du problème calculé sur les données ; ventes observées et demande estimée côte à côte", "test_problem_banner_numbers_are_computed_not_typed"],
-    ["Fonctionnement (20)", "Parcours import → visualisation → preuve → budget → panier → validation → export, local et production, ordinateur et mobile, zéro erreur console ; export identique à l'écran", "e2e/parcours.spec.ts ; test_export_is_strictly_what_the_screen_shows"],
-    ["Usage de l'IA (20)", "ML contre B0 / B1, règle écrite avant tout résultat, choix sur la validation seule, configuration gelée (empreintes SHA-256) ; test final ouvert une seule fois", "test_select_engine_never_receives_test_data ; test_result_is_a_single_opening_of_the_frozen_engine"],
-    ["Tests et fiabilité (15)", "Découpage reproductible ; anti-fuite par canaris et perturbation ; 9 contrôles négatifs ; répétition générale du test final ; CI GitHub Actions", "test_anti_leak_fails_on_injected_leak ; test_dress_rehearsal_on_validation_reproduces_frozen_metrics"],
-    ["Expérience et démo (15)", "Trois écrans Vérifier → Comprendre → Acheter ; au plus trois indicateurs par écran ; contrastes WCAG AA calculés", "test_at_most_three_metrics_per_screen ; test_every_text_color_meets_wcag_aa"],
-    ["IA responsable et données (10)", "Abstention visible ; couverture de l'intervalle 79,5 % ; données réelles CC BY 4.0, révision figée ; hypothèses et fichiers synthétiques étiquetés", "test_synthetic_series_without_enough_history_triggers_abstention ; test_real_report_uses_validation_only_and_is_consistent"]
+    [
+      "Problème et valeur (20)",
+      "20,2 % des heures 6 h–22 h en rupture ; bandeau du problème calculé sur les données ; ventes observées et demande estimée côte à côte",
+      "test_problem_banner_numbers_are_computed_not_typed"
+    ],
+    [
+      "Fonctionnement (20)",
+      "Parcours import → visualisation → preuve → budget → panier → validation → export, local et production, ordinateur et mobile, zéro erreur console ; export identique à l'écran",
+      "e2e/parcours.spec.ts ; test_export_is_strictly_what_the_screen_shows"
+    ],
+    [
+      "Usage de l'IA (20)",
+      "ML contre B0 / B1, règle écrite avant tout résultat, choix sur la validation seule, configuration gelée (empreintes SHA-256) ; test final ouvert une seule fois",
+      "test_select_engine_never_receives_test_data ; test_result_is_a_single_opening_of_the_frozen_engine"
+    ],
+    [
+      "Tests et fiabilité (15)",
+      "Découpage reproductible ; anti-fuite par canaris et perturbation ; 9 contrôles négatifs ; répétition générale du test final ; CI GitHub Actions",
+      "test_anti_leak_fails_on_injected_leak ; test_dress_rehearsal_on_validation_reproduces_frozen_metrics"
+    ],
+    [
+      "Expérience et démo (15)",
+      "Trois écrans Vérifier → Comprendre → Acheter ; au plus trois indicateurs par écran ; contrastes WCAG AA calculés",
+      "test_at_most_three_metrics_per_screen ; test_every_text_color_meets_wcag_aa"
+    ],
+    [
+      "IA responsable et données (10)",
+      "Abstention visible ; couverture de l'intervalle 79,5 % ; données réelles CC BY 4.0, révision figée ; hypothèses et fichiers synthétiques étiquetés",
+      "test_synthetic_series_without_enough_history_triggers_abstention ; test_real_report_uses_validation_only_and_is_consistent"
+    ]
   ],
   "ai_usage": [
     "Dans le produit : un modèle tabulaire scikit-learn, sans LLM ni API d'IA externe. NVIDIA Brev : non utilisé.",
@@ -105,5 +143,99 @@
   "pending": [
     "Script et vidéo de démonstration (M18) : à venir.",
     "Audit jury versionné (M19) : à venir."
+  ],
+  "screens": [
+    [
+      "Vérifier (accueil)",
+      "Le problème en une phrase, puis la preuve : erreurs du moteur ML et des deux références sur la validation et sur le test final, incertitude, garanties, limites"
+    ],
+    [
+      "Comprendre",
+      "Pour un produit : ventes heure par heure, disponibilité, ventes observées vs demande estimée par jour, prévisions B0 / B1, abstention ; import d'un fichier contrôlé par le contrat de données"
+    ],
+    [
+      "Acheter",
+      "Coûts, lots et stocks saisis comme hypothèses ; budget ; panier optimal (demande couverte, manque) ; validation puis export CSV / JSON avec provenance"
+    ]
+  ],
+  "screens_intro": "Le gérant n'a pas besoin de lire le code : l'application lui montre d'abord la preuve de fiabilité (écran Vérifier), puis la demande d'un produit (Comprendre), puis un panier sous budget qu'il valide et exporte (Acheter).",
+  "discipline_flow": "DATA → TRAIN (60 j) → VALIDATION (15 j) → CHOIX DU MOTEUR → GEL → TEST FINAL UNE SEULE FOIS (15 j)",
+  "discipline": [
+    "Découpage chronologique par série, jamais aléatoire.",
+    "Règle de choix écrite avant tout résultat : le ML n'est retenu que s'il bat B1 sur la validation, sinon B1 devient le moteur.",
+    "Anti-fuite testé : canaris, perturbation des jours futurs, et 9 contrôles négatifs (fuites injectées volontairement, que la suite doit détecter).",
+    "Deux regards sur la validation sont déclarés : le premier modèle était dégénéré (il prédisait 0 partout) ; il a été corrigé une fois, puis la configuration a été gelée."
+  ],
+  "architecture_table": [
+    [
+      "F1 DATA",
+      "data.py, validation.py",
+      "Sous-ensemble déterministe et vérifié (SHA-256) du jeu de données ; contrat de données ; lecture sûre des fichiers importés (CSV / Parquet, plafonds de taille et de lignes, aucune exécution de contenu)"
+    ],
+    [
+      "F2 REVEAL",
+      "ui/pages/comprendre.py, ui/charts.py",
+      "Ventes horaires, disponibilité déclarée, demande estimée"
+    ],
+    [
+      "F3 VERIFY",
+      "splits.py, baselines.py, features.py, model.py, evaluation.py, selection.py, final_test.py, uncertainty.py",
+      "Découpage chronologique, références B0 / B1, variables strictement passées, modèle ML, sélection sur validation, gel, test final unique, intervalle empirique"
+    ],
+    [
+      "F4 DECIDE",
+      "allocation.py",
+      "Panier optimal sous budget, énumération exhaustive bornée (≤ 3 produits), lots entiers"
+    ],
+    [
+      "F5 ACT",
+      "exports.py",
+      "Validation du panier, export CSV / JSON strictement identique à l'écran"
+    ]
+  ],
+  "tests_note": "Sur un clone neuf, 2 tests sont sautés car ils demandent des fichiers de données non versionnés (eval officiel, cache de téléchargement), avec une raison explicite. CI GitHub Actions : ruff, pytest, pip-audit (informatif). Instance Render gratuite (512 Mo, mise en veille après 15 min d'inactivité). Aucun secret n'est nécessaire.",
+  "licences": [
+    "Données : FreshRetailNet-50K, Dingdong-Inc, CC BY 4.0.",
+    "Dépendances : bibliothèques open source listées dans requirements.txt (pandas, NumPy, scikit-learn, Streamlit, Plotly, pyarrow, pytest, ruff, pip-audit) et package.json (@playwright/test, outil de test uniquement), chacune sous sa propre licence.",
+    "Code de StockVisible : aucun fichier de licence n'a encore été ajouté au dépôt ; sans licence explicite, les droits restent réservés à l'auteur.",
+    "Logo de l'onglet : icône de Galsen Technologie (galsentechnologie.com)."
+  ],
+  "chronology": "L'historique Git fait foi. Premier commit le 26/09/2026 à 16:03 UTC ; données, modèle, gel, test final et écrans (M0 à M11) commités le 26/09/2026 et dans la nuit jusqu'au 27/09 à 00:56 UTC ; tests E2E, audit de sécurité, export, CI, production et finitions le 27/09/2026.",
+  "install": [
+    "python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt",
+    ".venv/bin/streamlit run app.py                       # http://localhost:8501"
+  ],
+  "tests": [
+    ".venv/bin/ruff check .",
+    ".venv/bin/pytest -q                                  # suite complète (519 tests collectés)",
+    ".venv/bin/pytest -q -m \"not touches_test_period\"     # sans lire la période test réservée",
+    "npm ci && npx playwright test                        # parcours E2E, ordinateur + mobile",
+    "E2E_BASE_URL=https://stockvisible.onrender.com npx playwright test   # même parcours en production"
+  ],
+  "deploy": [
+    [
+      "Runtime",
+      "Python 3"
+    ],
+    [
+      "Branch",
+      "master"
+    ],
+    [
+      "Build Command",
+      "pip install -r requirements.txt"
+    ],
+    [
+      "Start Command",
+      "streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
+    ],
+    [
+      "Health Check Path",
+      "/_stcore/health"
+    ],
+    [
+      "PYTHON_VERSION",
+      "3.12.3"
+    ]
   ]
 }
