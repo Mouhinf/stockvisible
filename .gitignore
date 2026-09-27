@@ -60,3 +60,6 @@ node_modules/
 test-results/
 playwright-report/
 blob-report/
+
+# Fichiers d'import SYNTHÉTIQUES des tests E2E (versionnés)
+!tests/e2e/fixtures/*_SYNTHETIQUE.csv
