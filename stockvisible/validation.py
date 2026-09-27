@@ -1,7 +1,7 @@
 """Contrat d'entrée : lecture sûre (CSV/Parquet uniquement) et validate(df).
 
 Les règles bloquantes sont les invariants mesurés sur les données réelles
-(voir .claude/skills/stockvisible-data-contract/SKILL.md).
+(voir docs/data-contract.md).
 """
 
 from __future__ import annotations
@@ -19,7 +19,13 @@ import pyarrow.parquet as pq
 from stockvisible.data import CONTRACT_COLUMNS, SERIES_KEY
 
 ALLOWED_SUFFIXES = frozenset({".csv", ".parquet"})
-MAX_BYTES = 200 * 1024 * 1024
+MAX_BYTES = 20 * 1024 * 1024  # = server.maxUploadSize (Mo) de .streamlit/config.toml
+# Plafonds lus AVANT tout décodage (audit M13, P1-1) : un petit fichier compressé ne doit pas pouvoir
+# saturer la mémoire d'une instance de 512 Mo. 20 000 lignes = 222 séries de 90 jours (≈ +30 Mo mesurés).
+MAX_ROWS = 20_000
+MAX_COLUMNS = 64
+MAX_UNCOMPRESSED_BYTES = 64 * 1024 * 1024
+MAX_LIST_CELL_CHARS = 1_000  # une liste JSON de 24 nombres tient largement
 HOURS = 24
 STOCK_WINDOW = slice(6, 22)
 STOCK_WINDOW_HOURS = STOCK_WINDOW.stop - STOCK_WINDOW.start
@@ -105,11 +111,34 @@ def read_user_bytes(filename: str, data: bytes, max_bytes: int = MAX_BYTES) -> p
     return _read_csv(data)
 
 
+def _check_parquet_schema(schema: pa.Schema) -> None:
+    """Colonnes listes : listes de nombres ; autres colonnes : scalaires (jamais struct/map/liste)."""
+    for f in schema:
+        t = f.type
+        if f.name in LIST_COLUMNS:
+            is_list = pa.types.is_list(t) or pa.types.is_large_list(t) or pa.types.is_fixed_size_list(t)
+            ok = is_list and (pa.types.is_integer(t.value_type) or pa.types.is_floating(t.value_type))
+        else:
+            ok = not pa.types.is_nested(t)
+        if not ok:
+            raise InputRejected(f"colonne {f.name} : type {t} non accepté")
+
+
 def _read_parquet(data: bytes) -> pd.DataFrame:
     if len(data) < 8 or data[:4] != b"PAR1" or data[-4:] != b"PAR1":
         raise InputRejected("contenu non Parquet (signature PAR1 absente)")
     try:
-        return pq.read_table(pa.BufferReader(data)).to_pandas()
+        parquet = pq.ParquetFile(pa.BufferReader(data))
+        meta = parquet.metadata  # lu dans le pied de fichier, aucune donnée décodée
+        if meta.num_rows > MAX_ROWS:
+            raise InputRejected(f"{meta.num_rows} lignes > {MAX_ROWS} au plus")
+        if meta.num_columns > MAX_COLUMNS:
+            raise InputRejected(f"{meta.num_columns} colonnes > {MAX_COLUMNS} au plus")
+        size = sum(meta.row_group(i).total_byte_size for i in range(meta.num_row_groups))
+        if size > MAX_UNCOMPRESSED_BYTES:
+            raise InputRejected(f"taille décompressée {size} octets > {MAX_UNCOMPRESSED_BYTES}")
+        _check_parquet_schema(parquet.schema_arrow)
+        return parquet.read().to_pandas()
     except (pa.ArrowException, OSError) as exc:
         raise InputRejected(f"Parquet illisible : {exc}") from exc
 
@@ -121,8 +150,14 @@ def _read_csv(data: bytes) -> pd.DataFrame:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise InputRejected("CSV non UTF-8") from exc
+    lines = text.count("\n")
+    if lines > MAX_ROWS + 1:
+        raise InputRejected(f"{lines} lignes > {MAX_ROWS} au plus")
+    header = text.split("\n", 1)[0]
+    if header.count(",") + 1 > MAX_COLUMNS:
+        raise InputRejected(f"plus de {MAX_COLUMNS} colonnes")
     try:
-        df = pd.read_csv(io.StringIO(text), dtype={"dt": str})
+        df = pd.read_csv(io.StringIO(text), dtype={"dt": str}, nrows=MAX_ROWS)
     except (pd.errors.ParserError, pd.errors.EmptyDataError) as exc:
         raise InputRejected(f"CSV illisible : {exc}") from exc
     for col in LIST_COLUMNS:
@@ -134,9 +169,11 @@ def _read_csv(data: bytes) -> pd.DataFrame:
 def _parse_json_list(cell: object) -> list:
     if not isinstance(cell, str):
         raise InputRejected("cellule liste vide ou non textuelle")
+    if len(cell) > MAX_LIST_CELL_CHARS:
+        raise InputRejected(f"cellule liste de {len(cell)} caractères > {MAX_LIST_CELL_CHARS}")
     try:
         value = json.loads(cell)
-    except json.JSONDecodeError as exc:
+    except (json.JSONDecodeError, RecursionError) as exc:
         raise InputRejected(f"cellule liste non JSON : {cell[:40]!r}") from exc
     if not isinstance(value, list) or not all(
         isinstance(x, (int, float)) and not isinstance(x, bool) for x in value

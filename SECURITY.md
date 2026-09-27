@@ -19,9 +19,21 @@ restent **ouverts**, par ordre de priorité.
 | P1 | risque réel, mais pas exploitable immédiatement, ou limité, ou propre au dev |
 | P2 | durcissement, hygiène, information |
 
-## P1 — ouvert (à traiter en priorité)
+## Suivi des correctifs (M16, 2026-09-27)
 
-### P1-1 — Un petit fichier importé peut saturer la mémoire du serveur
+| ID | Statut | Correctif | Preuve |
+|---|---|---|---|
+| P1-1 | **corrigé** | `MAX_BYTES` et `server.maxUploadSize` = 20 Mo ; Parquet : nombre de lignes (≤ 20 000), de colonnes (≤ 64) et taille décompressée (≤ 64 Mo) lus dans les métadonnées **avant** tout décodage ; CSV : plafonds de lignes et de colonnes avant lecture, cellule liste ≤ 1 000 caractères avant `json.loads`. Re-mesuré : le Parquet de 5 M lignes (63 Ko) est refusé sur ses métadonnées ; un fichier valide au plafond (19 980 lignes) ajoute ≈ 30 Mo. | `tests/test_validation.py` (plafonds) |
+| P2-1 | **corrigé** | Types Parquet contrôlés (struct / map / liste interdits hors `hours_sale`, `hours_stock_status` ; listes de nombres seulement) ; `RecursionError` capturée ; `TypeError` / `ValueError` résiduelles transformées en refus propre à l'écran ; `client.showErrorDetails = "none"`. | idem |
+| P2-2 | **corrigé** | Le détail d'un refus est affiché en texte brut (`st.text`), jamais en markdown. | `ui/pages/comprendre.py` |
+| P2-3 à P2-6 | ouverts | inchangés (voir ci-dessous). | — |
+
+Barre d'outils : `client.toolbarMode = "viewer"` (plus de bouton « Deploy » ni d'options de
+développement pour les visiteurs).
+
+## P1 — historique de l'audit M13
+
+### P1-1 — Un petit fichier importé peut saturer la mémoire du serveur (corrigé en M16)
 
 - **Où** :
   - `stockvisible/validation.py:22` : `MAX_BYTES` vaut 200 Mo ;
@@ -41,7 +53,7 @@ restent **ouverts**, par ordre de priorité.
     plafond de lignes ou de taille décompressée ;
   - pour le CSV, un plafond de lignes (`nrows`) et de longueur de cellule avant `json.loads`.
 
-## P2 — ouverts (durcissement)
+## P2 — constats de l'audit M13 (P2-1 et P2-2 corrigés en M16)
 
 | ID | Constat | Où | Correctif proposé |
 |---|---|---|---|

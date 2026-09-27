@@ -134,3 +134,11 @@ def test_tab_icon_is_the_galsen_logo_not_streamlit():
     width, height = int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
     assert (width, height) == (32, 32)
 
+
+def test_guarantee_labels_distinguish_runtime_checks_from_test_suite():
+    from ui.components import GUARANTEE_LABELS, guarantee_label
+
+    assert len(GUARANTEE_LABELS) == len(proof_guarantees(FREEZE, FINAL, freeze_intact=True))
+    assert [guarantee_label(i, True) for i in range(3)] == ["Vérifié"] * 3
+    assert guarantee_label(3, True) == guarantee_label(4, True) == "Testé (suite automatique)"
+    assert guarantee_label(0, False) == "ÉCHEC"

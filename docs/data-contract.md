@@ -1,8 +1,9 @@
----
-name: stockvisible-data-contract
-description: Consulter avant toute modification de data.py, validation.py,
-splits.py, baselines.py, features.py, model.py, evaluation.py.
----
+# Contrat de données — StockVisible
+
+Référence à consulter avant toute modification de `data.py`, `validation.py`, `splits.py`, `baselines.py`, `features.py`, `model.py`, `evaluation.py`. Journal des décisions et des mesures faites sur les données réelles, milestone par milestone.
+
+## Schéma et règles
+
 Schéma FreshRetailNet-50K : city_id, store_id, management_group_id,
 first/second/third_category_id, product_id, dt, sale_amount (normalisé),
 hours_sale (Sequence[float], normalisé), stock_hour6_22_cnt (int),

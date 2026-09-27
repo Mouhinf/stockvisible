@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<title>{{labels.doc_title}}</title>
+<style>
+/* Jetons injectés depuis ui/theme.py (mêmes valeurs que l'application). */
+:root {
+{{{theme_vars}}}
+}
+@page { size: A4; margin: 15mm 15mm 17mm 15mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--background); color: var(--text);
+  font-family: var(--font); font-size: 9pt; line-height: 1.38; }
+h1, h2, h3 { font-weight: 600; margin: 0; }
+h2 { font-size: 11pt; color: var(--text); margin: var(--space-3) 0 var(--space-1);
+  padding-bottom: 3px; border-bottom: 1px solid var(--border); break-after: avoid; }
+p { margin: 0 0 var(--space-2); }
+ul { margin: 0 0 var(--space-2); padding-left: 16px; }
+li { margin: 0 0 3px; break-inside: avoid; }
+.mono, code, pre { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+code { font-size: 8pt; background: var(--surface); padding: 0 3px; border-radius: 3px; }
+.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+/* Page de garde */
+.cover { min-height: 262mm; display: flex; flex-direction: column; justify-content: center;
+  break-after: page; }
+.cover .event { color: var(--accent); font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  font-size: 9pt; margin-bottom: var(--space-3); }
+.cover h1 { font-size: 30pt; line-height: 1.1; margin-bottom: var(--space-3); }
+.cover .oneliner { font-size: 13pt; line-height: 1.4; color: var(--text); max-width: 150mm;
+  margin-bottom: var(--space-5); }
+.cover dl { display: grid; grid-template-columns: 34mm 1fr; gap: 4px 12px; margin: 0 0 var(--space-5);
+  font-size: 9.5pt; }
+.cover dt { color: var(--text-secondary); }
+.cover dd { margin: 0; }
+.box { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+  padding: var(--space-3) var(--space-3) var(--space-2); break-inside: avoid; }
+.box h3 { font-size: 10pt; margin-bottom: var(--space-2); }
+.note { color: var(--text-secondary); font-size: 8pt; margin-top: var(--space-3); }
+
+/* Tableaux : jamais coupés entre deux pages */
+table { width: 100%; border-collapse: collapse; margin: var(--space-1) 0 var(--space-3);
+  break-inside: avoid; font-size: 8.4pt; }
+th, td { border: 1px solid var(--border); padding: 4px 6px; vertical-align: top; text-align: left; }
+th { background: var(--surface); color: var(--text-secondary); font-weight: 600; }
+tr { break-inside: avoid; }
+td.test { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 7.2pt; word-break: break-word;
+  color: var(--text-secondary); }
+.engine td:first-child { font-weight: 600; }
+
+pre.verbatim { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3); font-size: 7.4pt; line-height: 1.35; white-space: pre-wrap;
+  margin: var(--space-1) 0 var(--space-3); break-inside: avoid; }
+.verbatim-title { font-size: 8.4pt; color: var(--text-secondary); margin: var(--space-2) 0 2px; }
+.pending li { color: var(--warning); }
+.keep { break-inside: avoid; }
+.flow { font-weight: 600; color: var(--accent); font-size: 8.8pt; }
+td.mono, td .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 7.4pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="event">{{labels.event}}</div>
+  <h1>{{cover.title}}</h1>
+  <p class="oneliner">{{cover.oneliner}}</p>
+  <dl>
+    <dt>{{labels.date_label}}</dt><dd>{{cover.date}}</dd>
+    <dt>{{labels.demo_label}}</dt><dd class="mono">{{cover.demo}}</dd>
+    <dt>{{labels.demo_alt_label}}</dt><dd class="mono">{{cover.demo_alt}}</dd>
+    <dt>{{labels.repo_label}}</dt><dd class="mono">{{cover.repo}}</dd>
+  </dl>
+  <div class="box">
+    <h3>{{labels.in_short}}</h3>
+    {{{in_short}}}
+  </div>
+  <p class="note">{{labels.sources_note}}</p>
+</section>
+
+<h2>{{labels.problem}}</h2>
+{{{problem}}}
+
+<h2>{{labels.screens}}</h2>
+<p>{{screens_intro}}</p>
+{{{screens_table}}}
+
+<h2>{{labels.data}}</h2>
+{{{data}}}
+
+<h2>{{labels.method}}</h2>
+{{{method}}}
+{{{results_table}}}
+<div class="keep">
+  <div class="verbatim-title">{{labels.verbatim_title}}</div>
+  <pre class="verbatim">{{{verbatim}}}</pre>
+</div>
+
+<h2>{{labels.discipline}}</h2>
+<p class="flow">{{discipline_flow}}</p>
+{{{discipline}}}
+
+<h2>{{labels.architecture}}</h2>
+{{{architecture_table}}}
+{{{architecture}}}
+
+<h2>{{labels.rai}}</h2>
+{{{rai}}}
+
+<h2>{{labels.limits}}</h2>
+{{{limits}}}
+
+<h2>{{labels.evidence}}</h2>
+{{{evidence_table}}}
+
+<h2>{{labels.run}}</h2>
+<div class="keep">
+  <div class="verbatim-title">{{labels.install_title}}</div>
+  <pre class="verbatim">{{{install}}}</pre>
+</div>
+<div class="keep">
+  <div class="verbatim-title">{{labels.tests_title}}</div>
+  <pre class="verbatim">{{{tests}}}</pre>
+</div>
+<p>{{tests_note}}</p>
+<div class="keep">
+  <div class="verbatim-title">{{labels.deploy_title}}</div>
+  {{{deploy_table}}}
+</div>
+
+<h2>{{labels.ai_usage}}</h2>
+{{{ai_usage}}}
+
+<h2>{{labels.licences}}</h2>
+{{{licences}}}
+
+<h2>{{labels.roadmap}}</h2>
+{{{roadmap}}}
+<div class="verbatim-title">{{labels.chronology_title}}</div>
+<p>{{chronology}}</p>
+
+<h2>{{labels.pending}}</h2>
+<div class="pending">{{{pending}}}</div>
+
+</body>
+</html>

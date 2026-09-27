@@ -308,3 +308,84 @@ def test_csv_list_cells_are_parsed_as_json_never_evaluated(tmp_path, cell):
     with pytest.raises(InputRejected, match="cellule"):
         read_user_bytes("x.csv", raw.to_csv(index=False).encode("utf-8"))
     assert not sentinel.exists()
+
+
+# ---------------------------------------------------------------- plafonds avant décodage (M16, audit M13 P1-1)
+
+
+def test_parquet_row_count_is_capped_from_metadata_before_decoding():
+    """Le « Parquet bombe » de l'audit M13 : peu d'octets, des millions de lignes."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    from stockvisible.validation import MAX_ROWS
+
+    table = pa.table({"store_id": pa.array(np.zeros(MAX_ROWS + 1, dtype="int64"))})
+    buf = io.BytesIO()
+    pq.write_table(table, buf, compression="zstd")
+    assert len(buf.getvalue()) < 50_000  # petit fichier…
+    with pytest.raises(InputRejected, match="lignes"):  # … refusé sur ses métadonnées
+        read_user_bytes("bombe.parquet", buf.getvalue())
+
+
+def test_parquet_uncompressed_size_is_capped(monkeypatch):
+    from stockvisible import validation
+
+    monkeypatch.setattr(validation, "MAX_UNCOMPRESSED_BYTES", 1_000)
+    with pytest.raises(InputRejected, match="décompressée"):
+        read_user_bytes("x.parquet", _parquet_bytes(make_valid_frame(n_series=3, n_days=10)))
+
+
+@pytest.mark.parametrize(
+    "column, values",
+    [
+        ("store_id", [{"a": 1}, {"a": 2}]),  # struct à la place d'un scalaire
+        ("city_id", [[1, 2], [3]]),  # liste à la place d'un scalaire
+        ("hours_sale", [["a"] * 24, ["b"] * 24]),  # liste de textes à la place de nombres
+    ],
+)
+def test_parquet_nested_or_wrongly_typed_columns_are_refused_cleanly(column, values):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    buf = io.BytesIO()
+    pq.write_table(pa.table({column: values}), buf)
+    with pytest.raises(InputRejected, match=f"colonne {column}"):
+        read_user_bytes("x.parquet", buf.getvalue())
+
+
+def test_csv_row_and_column_counts_are_capped():
+    from stockvisible.validation import MAX_COLUMNS, MAX_ROWS
+
+    rows = b"store_id\n" + b"1\n" * (MAX_ROWS + 2)
+    with pytest.raises(InputRejected, match="lignes"):
+        read_user_bytes("x.csv", rows)
+    wide = (",".join(f"c{i}" for i in range(MAX_COLUMNS + 1)) + "\n").encode()
+    with pytest.raises(InputRejected, match="colonnes"):
+        read_user_bytes("x.csv", wide)
+
+
+def test_csv_oversized_or_deeply_nested_list_cell_is_refused_cleanly():
+    df = make_valid_frame()
+    df["hours_sale"] = df["hours_sale"].map(json.dumps)
+    df["hours_stock_status"] = df["hours_stock_status"].map(json.dumps)
+    huge = df.copy()
+    huge.at[0, "hours_sale"] = json.dumps([0.0] * 5_000)
+    with pytest.raises(InputRejected, match="caractères"):
+        read_user_bytes("x.csv", huge.to_csv(index=False).encode())
+    deep = df.copy()
+    deep.at[0, "hours_sale"] = "[" * 499 + "]" * 499
+    with pytest.raises(InputRejected):
+        read_user_bytes("x.csv", deep.to_csv(index=False).encode())
+
+
+def test_streamlit_upload_limit_matches_the_validator():
+    from pathlib import Path
+
+    import tomllib
+
+    from stockvisible.validation import MAX_BYTES
+
+    config = tomllib.loads((Path(__file__).resolve().parents[1] / ".streamlit" / "config.toml").read_text())
+    assert config["server"]["maxUploadSize"] * 1024 * 1024 == MAX_BYTES
+    assert config["client"]["showErrorDetails"] == "none"

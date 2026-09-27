@@ -63,3 +63,7 @@ blob-report/
 
 # Fichiers d'import SYNTHÉTIQUES des tests E2E (versionnés)
 !tests/e2e/fixtures/*_SYNTHETIQUE.csv
+
+# Consignes et configuration locales de l'outil de développement (non versionnées, voir AI_USAGE.md)
+CLAUDE.md
+.claude/
