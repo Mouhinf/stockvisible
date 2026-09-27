@@ -2,8 +2,9 @@
 
 | | |
 |---|---|
-| Dernier milestone | M15-production — commit déployé `e77e07b` (M14), live depuis 2026-09-27 10:47 UTC |
+| Dernier milestone | M16-dns — commit déployé `e77e07b` (M14), live depuis 2026-09-27 10:47 UTC |
 | URL publique (finale) | **https://stockvisible.onrender.com** |
+| Domaine personnalisé (alternatif) | https://stockvisible.galsentechnologie.com — M16, 2026-09-27 : CNAME Spaceship `stockvisible` → `stockvisible.onrender.com` ; `dig` → CNAME résolu vers Render (216.24.57.16 / .18) ; certificat Google Trust Services pour ce nom, chaîne vérifiée ; `curl -sf` → 200, `/_stcore/health` → `ok`. L'URL onrender.com reste l'URL par défaut. |
 | Vérification HTTPS | 2026-09-27 (M15) : `curl -sf` → 200 ; `/_stcore/health` → `ok`. Précédemment : http → 301 vers https, certificat valide (expire le 2026-12-20) |
 | Vérification navigateur | M15 : parcours critique Playwright (import → visualisation → test → budget → panier → validation → export) rejoué contre la production, desktop + mobile : 2/2 verts, 0 erreur console. Exports JSON local et production identiques champ à champ (hors horodatage de validation ; même empreinte `6f993edf2de8f17b`). Commande : `E2E_BASE_URL=https://stockvisible.onrender.com npx playwright test` |
 | Hébergeur | Render, service Web `srv-das10h3bc2fs738t57ag`, offre gratuite, région Frankfurt |
