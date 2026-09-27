@@ -3,16 +3,28 @@
 import streamlit as st
 
 from stockvisible.allocation import MAX_PRODUCTS, optimal_basket
-from stockvisible.exports import basket_fingerprint, export_csv, validate_basket
-from ui.common import SELECTED_SERIES, require_dev
+from stockvisible.exports import (
+    basket_fingerprint,
+    basket_view,
+    export_csv,
+    export_json,
+    validate_basket,
+)
+from ui.common import (
+    FREEZE_FILE,
+    SELECTED_SERIES,
+    data_manifest,
+    read_json,
+    require_dev,
+)
 from ui.components import (
-    basket_table,
     budget_upper_bound,
     daily_demand_scenarios,
     default_hypotheses,
     products_from_hypotheses,
     series_keys,
     series_label,
+    view_table,
 )
 
 VALIDATED = "panier_valide"
@@ -60,28 +72,45 @@ except ValueError as exc:
 
 for name, reason in basket.excluded.items():
     st.warning(f"{name} : {reason}")
+freeze = read_json(FREEZE_FILE) or {}
+manifest = data_manifest() or {}
+context = {
+    "moteur_gele_projet": f"{freeze.get('moteur', 'inconnu')} (gelé en M8, non utilisé pour la demande du panier)",
+    "donnees": f"{manifest.get('dataset', 'inconnu')} @ {str(manifest.get('revision', ''))[:8]} "
+    f"({manifest.get('license', '')}), {len(keys)} séries réelles",
+    "scenarios": f"{len(scenario_days)} jours de validation {scenario_days[0]} → {scenario_days[-1]}",
+}
+view = basket_view(basket, products, budget, context)  # source unique de l'écran et des exports
+ind = view["indicateurs"]
 cols = st.columns(3)
-cols[0].metric("Coût du panier", f"{basket.cost:.2f}", help=f"Budget : {budget:.2f}")
+cols[0].metric("Coût du panier", f"{ind['cout_panier']:.2f}", help=f"Budget : {view['budget']:.2f}")
 cols[1].metric(
     "Demande couverte espérée / jour",
-    f"{basket.expected_covered:.2f}",
-    delta=f"{basket.gain:+.2f} vs sans achat",
+    f"{ind['demande_couverte_esperee_jour']:.2f}",
+    delta=f"{ind['gain_vs_sans_achat']:+.2f} vs sans achat",
 )
-cols[2].metric("Manque espéré / jour", f"{basket.expected_shortfall:.2f}")
-st.dataframe(basket_table(basket), hide_index=True)
+cols[2].metric("Manque espéré / jour", f"{ind['manque_espere_jour']:.2f}")
+st.dataframe(view_table(view), hide_index=True)
 
 st.subheader("Valider et exporter")
 fingerprint = basket_fingerprint(basket, products, budget)
 if st.button("Valider le panier", type="primary"):
-    st.session_state[VALIDATED] = validate_basket(basket, products, budget)
+    st.session_state[VALIDATED] = validate_basket(basket, products, budget, context=context)
 validated = st.session_state.get(VALIDATED)
 if validated is not None and validated.fingerprint == fingerprint:
     st.success(f"Panier validé le {validated.validated_at} (empreinte {validated.fingerprint}).")
-    st.download_button(
+    left, right = st.columns(2)
+    left.download_button(
         "Exporter le panier (CSV)",
         data=export_csv(validated),
         file_name=f"panier_{validated.fingerprint}.csv",
         mime="text/csv",
+    )
+    right.download_button(
+        "Exporter le panier (JSON)",
+        data=export_json(validated),
+        file_name=f"panier_{validated.fingerprint}.json",
+        mime="application/json",
     )
 elif validated is not None:
     st.info("Le panier a changé depuis sa validation : le valider à nouveau pour pouvoir l'exporter.")

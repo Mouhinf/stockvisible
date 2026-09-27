@@ -1,0 +1,41 @@
+# CI StockVisible : lint, suite de tests complète, audit des dépendances (informatif).
+# Aucun secret n'est nécessaire ni utilisé. Si un secret devenait nécessaire, il serait lu via
+# ${{ secrets.NOM }} (GitHub Secrets), jamais écrit dans ce fichier.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Installer les dépendances
+        run: python -m pip install -r requirements.txt
+
+      - name: ruff check .
+        run: ruff check .
+
+      - name: pytest -q
+        run: pytest -q -p no:cacheprovider
+
+      - name: pip-audit (informatif)
+        continue-on-error: true
+        run: pip-audit -r requirements.txt

@@ -7,8 +7,7 @@ import { join } from 'node:path';
 
 const FIXTURES = join(__dirname, 'fixtures');
 const EXPORT_HEADER =
-  'serie,lots,quantite_unites_normalisees,cout_unitaire_hypothese,taille_lot,stock_actuel_hypothese,' +
-  'cout_ligne,budget,cout_total_panier,demande_couverte_esperee_jour,source_demande,valide_le_utc,empreinte_panier';
+  'serie,lots,quantite_unites_normalisees,cout_unitaire_hypothese,taille_lot,stock_actuel_hypothese,budget,cout_panier,demande_couverte_esperee_jour,gain_vs_sans_achat,manque_espere_jour,moteur_demande_panier,moteur_gele_projet,scenarios,donnees,horodatage_utc,empreinte_panier';
 
 function watchConsole(page: Page): string[] {
   const problems: string[] = [];
@@ -95,9 +94,21 @@ test('parcours critique complet, zéro erreur console', async ({ page }) => {
   const csv = readFileSync(await download.path(), 'utf-8').trim().split('\n');
   expect(csv[0]).toBe(EXPORT_HEADER);
   expect(csv).toHaveLength(4); // en-tête + 3 produits
-  const costTotal = Number(csv[1].split(',')[8]);
-  expect(costTotal).toBeCloseTo(fullCost, 2);
+  const costTotal = Number(csv[1].split(',')[7]); // cout_panier (colonnes 0-7 sans virgule)
+  expect(costTotal).toBe(fullCost); // identique à l'écran, arrondi compris
   expect(csv[1]).toContain('B1 estimé');
+
+  // Export JSON : même vue que le CSV et que l'écran.
+  const [jsonDownload] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Exporter le panier (JSON)' }).click(),
+  ]);
+  expect(jsonDownload.suggestedFilename()).toMatch(/^panier_[0-9a-f]{16}\.json$/);
+  const view = JSON.parse(readFileSync(await jsonDownload.path(), 'utf-8'));
+  expect(view.indicateurs.cout_panier).toBe(fullCost);
+  expect(view.panier).toHaveLength(3);
+  expect(view.moteur.moteur_gele_projet).toMatch(/^ML/);
+  expect(view.empreinte_panier).toBe(download.suggestedFilename().slice(7, 23));
 
   expect(problems, problems.join('\n')).toEqual([]);
 });

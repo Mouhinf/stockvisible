@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Dernier milestone | M12-e2e-suite (M12 non encore poussé ; M11 déployé) |
+| Dernier milestone | M14-export-ci (M12 → M14 non poussés sur master ; M11 déployé) |
 | URL publique | https://stockvisible.onrender.com |
 | Vérification HTTPS | 2026-09-26 18:4x GMT : `curl -sf` → 200 ; `/_stcore/health` → `ok` ; http → 301 vers https ; certificat valide (expire le 2026-12-20) |
 | Vérification navigateur | session complète sur l'URL publique : graphique, 4 tableaux, changement de série ; 0 erreur page / console / logs |
@@ -29,3 +29,6 @@ minutes avant une démo.
 - F1 import utilisateur : CSV/Parquet contrôlés par le contrat de données (écran Comprendre).
 - F5 ACT : validation du panier puis export CSV (hypothèses, provenance, anti-injection).
 - Tests E2E Playwright : parcours complet import → export, desktop + mobile, 0 erreur console.
+- Export du panier CSV + JSON = vue unique de l'écran (moteurs, hypothèses, horodatage, provenance).
+- CI GitHub Actions : ruff, pytest complet, pip-audit (informatif), sans secret.
+- Sécurité : audit M13 dans SECURITY.md (P1-1 ouvert : import de fichier → saturation mémoire).

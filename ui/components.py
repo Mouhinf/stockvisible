@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from stockvisible.allocation import Basket, Product
+from stockvisible.allocation import Product
 from stockvisible.baselines import HourlyForecast, b1_forecast, hourly_matrix
 from stockvisible.data import SERIES_KEY
 from stockvisible.evaluation import compare_baselines
@@ -126,16 +126,6 @@ def budget_upper_bound(products: list[Product], scenarios: np.ndarray) -> float:
         need = max(float(scenarios[:, j].max()) - p.stock, 0.0)
         total += np.ceil(need / p.lot_size - 1e-12) * p.lot_size * p.unit_cost
     return float(total)
-
-
-def basket_table(basket: Basket) -> pd.DataFrame:
-    return pd.DataFrame(
-        {
-            "Série": basket.names,
-            "Lots achetés": basket.lots,
-            "Quantité (unités normalisées)": basket.quantities,
-        }
-    )
 
 
 # ---------------------------------------------------------------- IA responsable (M10)
@@ -287,3 +277,14 @@ def import_report(df: pd.DataFrame, report) -> dict:
             ),
         }
     return summary
+
+
+def view_table(view: dict) -> pd.DataFrame:
+    """Tableau du panier affiché, construit depuis basket_view (même source que les exports)."""
+    return pd.DataFrame(
+        {
+            "Série": [line["serie"] for line in view["panier"]],
+            "Lots achetés": [line["lots"] for line in view["panier"]],
+            "Quantité (unités normalisées)": [line["quantite_unites_normalisees"] for line in view["panier"]],
+        }
+    )
