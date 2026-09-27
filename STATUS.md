@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Dernier milestone | M16-dns — commit déployé `e77e07b` (M14), live depuis 2026-09-27 10:47 UTC |
+| Dernier milestone | Branche `final-hackathon-polish` = `master` (M17-favicon, `574d2db`, déployé) + M15-jury-clarity, M16-import-hardening, M15b-header-clearance, M17-jury-docs (non fusionnés, non déployés : la fusion redéploie Render). Numérotation : ces M15–M17 doublonnent M15-production, M16-dns et M17-favicon déjà sur `master`. |
 | URL publique (finale) | **https://stockvisible.onrender.com** |
 | Domaine personnalisé (alternatif) | https://stockvisible.galsentechnologie.com — M16, 2026-09-27 : CNAME Spaceship `stockvisible` → `stockvisible.onrender.com` ; `dig` → CNAME résolu vers Render (216.24.57.16 / .18) ; certificat Google Trust Services pour ce nom, chaîne vérifiée ; `curl -sf` → 200, `/_stcore/health` → `ok`. L'URL onrender.com reste l'URL par défaut. |
 | Vérification HTTPS | 2026-09-27 (M15) : `curl -sf` → 200 ; `/_stcore/health` → `ok`. Précédemment : http → 301 vers https, certificat valide (expire le 2026-12-20) |
@@ -24,7 +24,8 @@ avant une démo.**
 - F1 DATA : sous-ensemble déterministe, contrat de données, validation d'entrée.
 - F2 REVEAL : ventes horaires et disponibilité par série.
 - F3 VERIFY : B0 / B1 / ML comparés sur la validation, moteur ML gelé ; test masqué et anti-fuite
-  (hors écran). L'écran affiche encore B0 / B1 seulement.
+  (hors écran). L'écran Vérifier affiche ML / B1 / B0 (validation + test final) ; l'écran
+  Comprendre affiche B0 / B1 par série.
 - F4 DECIDE : panier optimal sous budget (coûts et stocks = hypothèses saisies).
 - IA responsable : abstention visible à l'écran ; intervalle 80 % du moteur, couverture
   empirique 79,5 % sur la validation (jours jamais vus en calibration).
@@ -35,4 +36,9 @@ avant une démo.**
 - Tests E2E Playwright : parcours complet import → export, desktop + mobile, 0 erreur console.
 - Export du panier CSV + JSON = vue unique de l'écran (moteurs, hypothèses, horodatage, provenance).
 - CI GitHub Actions : ruff, pytest complet, pip-audit (informatif), sans secret.
-- Sécurité : audit M13 dans SECURITY.md (P1-1 ouvert : import de fichier → saturation mémoire).
+- Sécurité : audit M13 dans SECURITY.md ; P1-1, P2-1 et P2-2 corrigés en M16 (plafonds d'import lus
+  avant décodage, refus propres, aucune trace à l'écran).
+- M15 : bandeau « problème » sur l'écran d'accueil (chiffres calculés sur les données) ; ventes
+  observées vs demande estimée par série (écran Comprendre) ; libellés des garanties distinguant
+  « Vérifié » (recalculé à l'écran) et « Testé (suite automatique) ».
+- M17 : README orienté jury, AI_USAGE.md (déclaration des outils IA, Brev non utilisé).
