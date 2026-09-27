@@ -3,6 +3,13 @@ gatherUsageStats = false
 
 [server]
 address = "localhost"
+# Même plafond que stockvisible.validation.MAX_BYTES (audit M13, P1-1).
+maxUploadSize = 20
+
+[client]
+# Jamais de trace Python à l'écran (audit M13, P2-1) ; barre d'outils sans options de développement.
+showErrorDetails = "none"
+toolbarMode = "viewer"
 
 # Thème : traduction de design-system/MASTER.md (valeurs identiques à ui/theme.py, vérifiées par
 # tests/test_design.py). Thème clair uniquement.

@@ -80,10 +80,13 @@ upload = st.file_uploader("Fichier à contrôler", type=["csv", "parquet"])
 if upload is not None:
     try:
         imported = read_user_bytes(upload.name, upload.getvalue())
-    except InputRejected as exc:
-        st.error(f"Fichier refusé avant lecture : {exc}")
-    else:
         result = import_report(imported, validate(imported))
+    except InputRejected as exc:
+        st.error("Fichier refusé avant lecture. Détail :")
+        st.text(str(exc))  # texte brut : un fragment du fichier n'est jamais interprété en markdown
+    except (TypeError, ValueError, RecursionError):
+        st.error("Fichier refusé : contenu inattendu, impossible à contrôler par le contrat de données.")
+    else:
         if not result["conforme"]:
             st.error(f"Fichier non conforme au contrat de données ({len(result['erreurs'])} type(s) d'erreur) :")
             st.table(result["erreurs"].set_index("Code"))  # tableau HTML : lisible au lecteur d'écran
